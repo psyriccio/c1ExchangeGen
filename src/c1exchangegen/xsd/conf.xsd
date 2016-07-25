@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xs:import namespace="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="xsi.xsd"/>
+  <xs:element name="Conf">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="CatalogObject.Conf"/>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="CatalogObject.Obj"/>
+          <xs:element ref="CatalogObject.Property"/>
+          <xs:element ref="CatalogObject.Value"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="Name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CatalogObject.Conf">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Ref"/>
+        <xs:element ref="IsFolder"/>
+        <xs:element ref="DeletionMark"/>
+        <xs:element ref="Parent"/>
+        <xs:element ref="Description"/>
+        <xs:element ref="Name"/>
+        <xs:element ref="Synonym"/>
+        <xs:element ref="Comment"/>
+        <xs:element ref="Version"/>
+        <xs:element ref="DateOfUpdate"/>
+        <xs:element ref="Application"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Version" type="xs:NMTOKEN"/>
+  <xs:element name="DateOfUpdate" type="xs:dateTime"/>
+  <xs:element name="Application" type="xs:NCName"/>
+  <xs:element name="CatalogObject.Obj">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Ref"/>
+        <xs:element ref="IsFolder"/>
+        <xs:element ref="DeletionMark"/>
+        <xs:element ref="Owner"/>
+        <xs:element ref="Parent"/>
+        <xs:element ref="Description"/>
+        <xs:element ref="Name"/>
+        <xs:element ref="Synonym"/>
+        <xs:element ref="Comment"/>
+        <xs:element ref="Type"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="Hierarchical"/>
+          <xs:element ref="HierarchyType"/>
+          <xs:element ref="StrictLevelsCount"/>
+          <xs:element ref="LevelsCount"/>
+          <xs:element ref="CodesSeries"/>
+          <xs:element ref="UniquenessControl"/>
+          <xs:element ref="AutoNumeration"/>
+          <xs:element ref="Periodical"/>
+          <xs:element ref="Slave"/>
+        </xs:sequence>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Hierarchical" type="xs:boolean"/>
+  <xs:element name="HierarchyType" type="xs:string"/>
+  <xs:element name="StrictLevelsCount" type="xs:boolean"/>
+  <xs:element name="LevelsCount" type="xs:integer"/>
+  <xs:element name="CodesSeries" type="xs:string"/>
+  <xs:element name="UniquenessControl" type="xs:boolean"/>
+  <xs:element name="AutoNumeration" type="xs:boolean"/>
+  <xs:element name="Periodical" type="xs:string"/>
+  <xs:element name="Slave" type="xs:boolean"/>
+  <xs:element name="CatalogObject.Property">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Ref"/>
+        <xs:element ref="IsFolder"/>
+        <xs:element ref="DeletionMark"/>
+        <xs:element ref="Owner"/>
+        <xs:element ref="Parent"/>
+        <xs:element ref="Code"/>
+        <xs:element ref="Description"/>
+        <xs:element ref="Synonym"/>
+        <xs:element ref="Comment"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="Using"/>
+          <xs:element ref="Indexing"/>
+          <xs:element ref="QNum_Length"/>
+          <xs:element ref="QNum_Precision"/>
+          <xs:element ref="QNum_NotNegative"/>
+          <xs:element ref="QStr_Length"/>
+          <xs:element ref="QStr_Fixed"/>
+          <xs:element ref="QDate_Consist"/>
+          <xs:element ref="AutoRegistration"/>
+        </xs:sequence>
+        <xs:element ref="Kind"/>
+        <xs:element ref="TypesString"/>
+        <xs:element ref="Types"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Using" type="xs:string"/>
+  <xs:element name="Indexing" type="xs:boolean"/>
+  <xs:element name="QNum_Length" type="xs:integer"/>
+  <xs:element name="QNum_Precision" type="xs:integer"/>
+  <xs:element name="QNum_NotNegative" type="xs:boolean"/>
+  <xs:element name="QStr_Length" type="xs:integer"/>
+  <xs:element name="QStr_Fixed" type="xs:boolean"/>
+  <xs:element name="QDate_Consist" type="xs:string"/>
+  <xs:element name="AutoRegistration" type="xs:boolean"/>
+  <xs:element name="Kind" type="xs:NCName"/>
+  <xs:element name="TypesString">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="CatalogObject.Value">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Ref"/>
+        <xs:element ref="DeletionMark"/>
+        <xs:element ref="Owner"/>
+        <xs:element ref="Parent"/>
+        <xs:element ref="Code"/>
+        <xs:element ref="Description"/>
+        <xs:element ref="Synonym"/>
+        <xs:element ref="Comment"/>
+        <xs:element ref="Predefined"/>
+        <xs:element ref="Types"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Predefined" type="xs:boolean"/>
+  <xs:element name="Ref" type="xs:string"/>
+  <xs:element name="IsFolder" type="xs:boolean"/>
+  <xs:element name="DeletionMark" type="xs:boolean"/>
+  <xs:element name="Parent" type="xs:string"/>
+  <xs:element name="Description" type="xs:string"/>
+  <xs:element name="Name" type="xs:string"/>
+  <xs:element name="Synonym" type="xs:string"/>
+  <xs:element name="Comment" type="xs:string"/>
+  <xs:element name="Owner">
+    <xs:complexType mixed="true">
+      <xs:attribute ref="xsi:type" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Type" type="xs:string"/>
+  <xs:element name="Code" type="xs:integer"/>
+  <xs:element name="Types">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Row"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Row">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Type"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Mapping name="test-mapping">
+
+  <map from="СправочникСсылка.Номенклатура" to="СправочникСсылка.Номенклатура">
+	   <rule object="ЕдиницаХраненияОстатков" mode="SKIP" />
+     <rule object="НаправлениеСписанияВыпущеннойПродукции" mode="SKIP" />
+     <rule object="ВестиПартионныйУчетПоСериям" mode="SKIP" />
+     <rule object="ОтветственныйМенеджерЗаПокупки" mode="SKIP" />
+     <rule object="ВестиУчетПоСериямВНЗП" mode="SKIP" />
+     <rule object="ЦеноваяГруппа" mode="SKIP" />
+     <rule object="ЕдиницаИзмеренияМест" mode="SKIP" />
+     <rule object="ИмпортнаяАлкогольнаяПродукция" mode="SKIP" />
+     <rule object="Набор" mode="SKIP" />
+     <rule object="ВестиУчетПоХарактеристикам" mode="SKIP" />
+     <rule object="ВидВоспроизводства" mode="SKIP" />
+     <rule object="ТребуетсяВнутренняяСертификация" mode="SKIP" />
+     <rule object="ДополнительноеОписаниеНоменклатурыВФорматеHTML" mode="SKIP" />
+     <rule object="ВестиСерийныеНомера" mode="SKIP" />
+     <rule object="Крепость" mode="SKIP" />
+     <rule object="ДополнительноеОписаниеНоменклатуры" mode="SKIP" />
+     <rule object="ВестиУчетПоСериям" mode="SKIP" />
+     <rule object="ВесовойКоэффициентВхождения" mode="SKIP" />
+     <rule object="ЕдиницаДляОтчетов" mode="SKIP" />
+  </map>
+  <map from="СправочникСсылка.ВидыНоменклатуры" to="СправочникСсылка.ВидыНоменклатуры">
+    <rule object="*" mode="SKIP" />
+  </map>
+  <map from="СправочникСсылка.НоменклатурныеГруппы" to="СправочникСсылка.НоменклатурныеГруппы">
+    <rule object="СтавкаНДС" mode="SKIP" />
+    <rule object="БазоваяЕдиницаИзмерения" mode="SKIP" />
+    <rule object="ЕдиницаХраненияОстатков" mode="SKIP" />
+    <rule object="Родитель" mode="NO_CHAIN" />
+  </map>
+
+  <map from="СправочникСсылка.КлассификаторСтранМира" to="" mode="SKIP">
+    <rule object="*" mode="SKIP" />
+  </map>
+
+  <map from="СправочникСсылка.КонтактныеЛица" to="СправочникСсылка.КонтактныеЛица">
+  </map>
+
+  <map from="СправочникСсылка.Контрагенты" to="СправочникСсылка.Контрагенты">
+    <rule object="ОсновнойВидДеятельности" mode="SKIP" />
+    <rule object="ОКОПФ" mode="SKIP" />
+    <rule object="ОсновнойДоговорКонтрагента" mode="SKIP" />
+    <rule object="Покупатель" mode="SKIP" />
+    <rule object="ВидыДеятельности" mode="SKIP" />
+    <rule object="СрокВыполненияЗаказаПоставщиком" mode="SKIP" />
+    <rulu object="ОсновноеКонтактноеЛицо" mode="REMAP" from="ОсновноеКонтактноеЛицо.КонтактноеЛицо" to="ОсновноеКонтактноеЛицо" />
+  </map>
+
+
+
+</Mapping>

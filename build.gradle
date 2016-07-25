@@ -1,0 +1,68 @@
+buildscript {
+  repositories { jcenter() }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+  }
+}
+
+plugins {
+  id "com.github.johnrengelman.shadow" version "1.2.3"
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+repositories {
+    mavenCentral()
+    maven {
+    	url 'https://raw.github.com/Ekito/maven-repo/master/releases'
+    }
+}
+
+sourceCompatibility = 1.8
+version = 'latest-SNAPSHOT'
+
+ext.mainClass = 'c1exchangegen.C1ExchangeGen'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'c1ExchangeGen',
+                   'Implementation-Version': version,
+                   'Main-Class': 'c1exchangegen.C1ExchangeGen'
+    }
+}
+
+shadowJar {
+   dependencies {
+      exclude(dependency('com.google.android:android:.*'))
+      exclude(dependency('org.eclipse.swt.win32.win32:.*'))
+    }
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
+    compile group: 'ch.qos.logback', name: 'logback-core', version: '1.1.7'
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
+    // https://mvnrepository.com/artifact/org.freemarker/freemarker
+    compile group: 'org.freemarker', name: 'freemarker', version: '2.3.25-incubating'
+    // https://mvnrepository.com/artifact/org.java.net.substance/substance
+    compile group: 'org.java.net.substance', name: 'substance', version: '6.0'
+    compile fileTree(dir: 'lib').matching { include '*.jar'}
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'src'
+            include '**/*.ftl'
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.4'
+}
