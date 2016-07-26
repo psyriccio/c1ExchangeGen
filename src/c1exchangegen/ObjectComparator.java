@@ -32,6 +32,8 @@ import java.util.stream.Stream;
  */
 public class ObjectComparator {
 
+    public static final ArrayList<Rule> EMPTY_RULE_LIST = new ArrayList<>();
+
     protected static String descrStatic(String prefix, String propName, Object in, Object inVal, Object out, Object outVal) {
         return prefix
                 + " "
@@ -68,12 +70,11 @@ public class ObjectComparator {
         return obj == EMPTY ? (Map map) -> false
                 : (Map map) -> (map.getFrom().equals(getFullDescription(obj)))
                 || map.getFrom().equals(getDescription(obj))
-                || (map.getFrom().endsWith("\\*")
-                ? (getDescription(obj).startsWith(map.getFrom().replaceAll("\\*", ""))
-                || getDescription(obj).startsWith(map.getFrom().replaceAll("\\*", ""))) : false)
+                || ((getDescription(obj).startsWith(map.getFrom())
+                || getDescription(obj).startsWith(map.getFrom())))
                 || (map.getFrom().startsWith("\\*")
-                ? (getDescription(obj).endsWith(map.getFrom().replaceAll("\\*", ""))
-                || getDescription(obj).endsWith(map.getFrom().replaceAll("\\*", ""))) : false)
+                ? (getDescription(obj).endsWith(map.getFrom())
+                || getDescription(obj).endsWith(map.getFrom())) : false)
                 || (map.getFrom().startsWith("regexp:"))
                 ? getDescription(obj).matches(map.getFrom().replace("regexp:", "")) : false;
     }
@@ -82,12 +83,10 @@ public class ObjectComparator {
         return obj == EMPTY ? (Map map) -> false
                 : (Map map) -> (map.getTo().equals(getFullDescription(obj)))
                 || map.getTo().equals(getDescription(obj))
-                || (map.getTo().endsWith("\\*")
-                ? (getDescription(obj).startsWith(map.getTo().replaceAll("\\*", ""))
-                || getDescription(obj).startsWith(map.getTo().replaceAll("\\*", ""))) : false)
-                || (map.getTo().startsWith("\\*")
-                ? (getDescription(obj).endsWith(map.getTo().replaceAll("\\*", ""))
-                || getDescription(obj).endsWith(map.getTo().replaceAll("\\*", ""))) : false)
+                || ((getDescription(obj).startsWith(map.getTo())
+                || getDescription(obj).startsWith(map.getTo())))
+                || (getDescription(obj).endsWith(map.getTo())
+                || getDescription(obj).endsWith(map.getTo()))
                 || (map.getTo().startsWith("regexp:"))
                 ? getDescription(obj).matches(map.getTo().replace("regexp:", "")) : false;
     }
@@ -126,33 +125,30 @@ public class ObjectComparator {
         HashMap<Object, List<Map>> mapCache = new HashMap<>();
         HashMap<Object, List<Rule>> ruleCache = new HashMap<>();
         HashMap<Rule, Map> reverseMapCache = new HashMap<>();
-        
+
         mapping.getMap().stream()
                 .forEach((map) -> {
-                    
-                    if(map.getFrom().equals(descrIn)
-                            || (map.getFrom().endsWith("*") 
-                            ? descrIn.startsWith(map.getFrom().replace("*", "")) : false ))  {
-                        
+
+                    if (map.getFrom().equals(descrIn)
+                          || descrIn.startsWith(map.getFrom())) {
+
                         MappingMode pmode = map.getMode() != null && !map.getMode().isEmpty()
                                 ? MappingMode.valueOf(map.getMode()) : null;
-                        
-                        if(pmode != null) {
+
+                        if (pmode != null) {
                             Rule prule = new Rule();
                             prule.setMode(map.getMode());
                             prule.setObject("*");
                             rulesIn.add(prule);
                         }
                     }
-                    
+
                     rulesIn.addAll(
                             map.getRule().stream()
                             .filter((rule)
                                     -> ((map.getFrom().startsWith("#regex:")
                                     ? pathIn.matches(map.getFrom().replace("#regex:", ""))
-                                    : (map.getFrom().endsWith("*")
-                                    ? pathIn.startsWith(map.getFrom().replace("*", ""))
-                                    : pathIn.equals(map.getFrom())))
+                                    : pathIn.startsWith(map.getFrom()))
                                     && (rule.getObject().startsWith("#regex:")
                                     ? nameIn.matches(rule.getObject().replace("#regex:", ""))
                                     : (rule.getObject().endsWith("*")
@@ -164,18 +160,18 @@ public class ObjectComparator {
                                 mapCache.put(in, lst);
                                 reverseMapCache.put(rule, map);
                                 List<Rule> rlst = ruleCache.getOrDefault(in, new ArrayList<>());
-                                rlst.addAll(rlst);
+                                rlst.add(rule);
                                 ruleCache.put(in, rlst);
                             })
                             .collect(Collectors.toList()));
                 });
 
-        if(cacheContainer != null) {
+        if (cacheContainer != null) {
             cacheContainer.setMapCache(mapCache);
             cacheContainer.setReverseMapCache(reverseMapCache);
             cacheContainer.setRuleCache(ruleCache);
         }
-        
+
         return rulesIn;
 
     }
@@ -217,7 +213,7 @@ public class ObjectComparator {
                             .collect(Collectors.toList()));
                 });
 
-        if(cacheContainer != null) {
+        if (cacheContainer != null) {
             mapCache.forEach((key, val) -> cacheContainer.getMapCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
             ruleCache.forEach((key, val) -> cacheContainer.getRuleCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
             reverseMapCache.forEach((key, val) -> cacheContainer.getReverseMapCache().put(key, val));
@@ -253,7 +249,7 @@ public class ObjectComparator {
         private ComparationResult.Status status;
         private List<ComparationResultsItem> items;
         private List<ComparationResult> results;
-        
+
         public ChainChecker() {
             this.status = ComparationResult.Status.EQU;
             this.items = new ArrayList<>();
@@ -422,7 +418,7 @@ public class ObjectComparator {
     private final HashMap<Rule, Map> reverseMapCacheIn;
     private final HashMap<Rule, Map> reverseMapCacheOut;
     private boolean ruleCacheInited = false;
-    
+
     protected ComparationResult viaCache(String key, ComparationResult res) {
         ComparationResult cached = comparedDeepCache.putIfAbsent(key, res);
         if (cached == null) {
@@ -485,29 +481,53 @@ public class ObjectComparator {
         this.mapCacheOut = new HashMap<>();
         this.ruleCacheOut = new HashMap<>();
         this.reverseMapCacheOut = new HashMap<>();
-        
+
         log.info("Building mapping cache...");
-        
+
     }
 
     public void initRuleCache() {
 
-        MappingCacheContainer cacheContainerIn = new MappingCacheContainer();
-        parseInRules(glMapping, this, cacheContainerIn);
-        mapCacheIn.forEach((key, val) -> cacheContainerIn.getMapCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
-        ruleCacheIn.forEach((key, val) -> cacheContainerIn.getRuleCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
-        reverseMapCacheIn.forEach((key, val) -> cacheContainerIn.getReverseMapCache().put(key, val));
+        inIndex.getIndexRefs().values().stream().forEach((obj) -> {
+            MappingCacheContainer cacheContainerIn = new MappingCacheContainer();
+            parseInRules(glMapping, obj, cacheContainerIn);
+            cacheContainerIn.getMapCache().forEach((key, lst) -> {
+                List<Map> olst = mapCacheIn.getOrDefault(key, new ArrayList<>());
+                olst.addAll(lst);
+                mapCacheIn.put(key, olst);
+            });
+            cacheContainerIn.getRuleCache().forEach((key, lst) -> {
+                List<Rule> olst = ruleCacheIn.getOrDefault(key, new ArrayList<>());
+                olst.addAll(lst);
+                ruleCacheIn.put(key, olst);
+            });
+            cacheContainerIn.getReverseMapCache().forEach((rule, map) -> {
+                reverseMapCacheIn.put(rule, map);
+            });
+        });
 
-        MappingCacheContainer cacheContainerOut = new MappingCacheContainer();
-        parseOutRules(glMapping, this, cacheContainerIn);
-        mapCacheOut.forEach((key, val) -> cacheContainerOut.getMapCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
-        ruleCacheOut.forEach((key, val) -> cacheContainerOut.getRuleCache().computeIfAbsent(key, (nkey) -> new ArrayList<>()).addAll(val));
-        reverseMapCacheOut.forEach((key, val) -> cacheContainerOut.getReverseMapCache().put(key, val));
-    
+        outIndex.getIndexRefs().values().stream().forEach((obj) -> {
+            MappingCacheContainer cacheContainerOut = new MappingCacheContainer();
+            parseOutRules(glMapping, obj, cacheContainerOut);
+            cacheContainerOut.getMapCache().forEach((key, lst) -> {
+                List<Map> olst = mapCacheOut.getOrDefault(key, new ArrayList<>());
+                olst.addAll(lst);
+                mapCacheOut.put(key, olst);
+            });
+            cacheContainerOut.getRuleCache().forEach((key, lst) -> {
+                List<Rule> olst = ruleCacheOut.getOrDefault(key, new ArrayList<>());
+                olst.addAll(lst);
+                ruleCacheOut.put(key, olst);
+            });
+            cacheContainerOut.getReverseMapCache().forEach((rule, map) -> {
+                reverseMapCacheOut.put(rule, map);
+            });
+        });
+
         ruleCacheInited = true;
-        
+
     }
-    
+
     public MappingMode getCachedMode(Object obj) {
         return Optional.ofNullable(modeCache.get(obj)).orElseGet(() -> {
 
@@ -547,41 +567,51 @@ public class ObjectComparator {
     public HashMap<Rule, Map> getReverseMapCacheOut() {
         return reverseMapCacheOut;
     }
-    
+
     public Object[] checkRemaps(Object in, Object out) {
 
-        Optional<Object[]> rems = getRuleCacheIn().get(in).stream()
-                .filter((rule) -> rule.getMode().equals(MappingMode.REMAP.name()))
-                .filter((rule) -> getFullDescription(in).equals(reverseMapCacheIn.get(rule).getFrom() + "." + rule.getFrom()))
+        Optional<Object[]> rems = getRuleCacheIn().keySet().stream()
+                .filter((key) -> 
+                        getFullDescription(in).startsWith(getFullDescription(key)))
+                .map((key) -> 
+                        getRuleCacheIn().get(key))
+                .flatMap((lst) -> 
+                        (lst.stream()))
+                .collect(Collectors.toList()).stream()
+                .filter((rule) -> 
+                        rule.getMode().equals(MappingMode.REMAP.name()))
+                .filter((rule) -> 
+                        getFullDescription(in).equals(reverseMapCacheIn.get(rule).getFrom() + "." + rule.getObject()))
                 .map(
-                        (rule) -> new Object[]{ 
-                            findObject(inIndex, reverseMapCacheIn.get(rule).getFrom() + "." + rule.getFrom()).orElse(in), 
-                            findObject(outIndex, reverseMapCacheIn.get(rule).getTo() + "." + rule.getTo()).orElse(out)
-                        
+                        (rule) -> new Object[]{
+                            findObjectEx(inIndex, reverseMapCacheIn.get(rule).getFrom() + "." + rule.getFrom()).orElse(in),
+                            findObjectEx(outIndex, reverseMapCacheIn.get(rule).getTo() + "." + rule.getTo()).orElse(out)
                         }).findFirst();
 
-        return rems.orElse(new Object[]{ in, out });
-        
+        return rems.orElse(new Object[]{in, out});
+
     }
-    
+
     public ComparationResult compare(CatalogObjectObj inObj, CatalogObjectObj outObj) {
 
-        if(!ruleCacheInited) initRuleCache();
-        
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
+
         Object[] remaps = checkRemaps(inObj, outObj);
         CatalogObjectObj in = (CatalogObjectObj) remaps[0];
         CatalogObjectObj out = (CatalogObjectObj) remaps[1];
 
         final String cacheKey = getObjectPairKey(in, out);
 
-        if(!in.equals(inObj)) {
+        if (!in.equals(inObj)) {
             log.info("Process remap {} -> {}", getFullDescription(inObj), getFullDescription(in));
         }
 
-        if(!out.equals(outObj)) {
+        if (!out.equals(outObj)) {
             log.info("Process remap {} -> {}", getFullDescription(outObj), getFullDescription(out));
         }
-        
+
         log.debug("Compare obj: {}, {}", in.getDescription(), out.getDescription());
         if (in == EMPTY || out == EMPTY) {
             log.info("Cant find mapping for one of the objects {}, {}", getFullDescription(in), getFullDescription(out));
@@ -652,20 +682,22 @@ public class ObjectComparator {
 
     public ComparationResult compare(CatalogObjectProperty inObj, CatalogObjectProperty outObj) {
 
-        if(!ruleCacheInited) initRuleCache();
-        
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
+
         Object[] remaps = checkRemaps(inObj, outObj);
         CatalogObjectProperty in = (CatalogObjectProperty) remaps[0];
         CatalogObjectProperty out = (CatalogObjectProperty) remaps[1];
 
-        if(!in.equals(inObj)) {
+        if (!in.equals(inObj)) {
             log.info("Process remap {} -> {}", getFullDescription(inObj), getFullDescription(in));
         }
 
-        if(!out.equals(outObj)) {
+        if (!out.equals(outObj)) {
             log.info("Process remap {} -> {}", getFullDescription(outObj), getFullDescription(out));
         }
-        
+
         final String cacheKey = getObjectPairKey(in, out);
 
         log.debug("Compare props: {}, {}", in.getDescription(), out.getDescription());
@@ -710,7 +742,18 @@ public class ObjectComparator {
                                         ComparationResult.DiffKind.PROPERTY,
                                         descr("DIFF", "Kind", in, in.getKind(), out, out.getKind()))
                         ).add(compareTypes(in, out, in.getTypes(), out.getTypes())
-                        ).done()
+                        ).add(() -> {
+
+                            ChainChecker slChk = new ChainChecker();
+                            inIndex.getSlaves(in).stream().forEach((slaveObjIn) -> {
+                                outIndex.getSlaves(out).forEach((slaveObjOut) -> {
+                                    if (getFullDescription(slaveObjOut).equals(getFullDescription(slaveObjIn))) {
+                                        slChk.add(compare(slaveObjIn, slaveObjOut));
+                                    }
+                                });
+                            });
+                            return slChk.done();
+                        }).done()
                 );
             });
         });
@@ -719,8 +762,10 @@ public class ObjectComparator {
 
     public ComparationResult compareTypes(Object inObj, Object outObj, Types in, Types out) {
 
-        if(!ruleCacheInited) initRuleCache();
-        
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
+
         final String cacheKey = getObjectPairKey(in, out);
 
         log.debug("Compare types: {} : {}, {} : {}", getDescription(inObj), in.getRow().get(0).getType(), getDescription(outObj), out.getRow().get(0).getType());
@@ -796,20 +841,22 @@ public class ObjectComparator {
 
     public ComparationResult compare(CatalogObjectValue inObj, CatalogObjectValue outObj) {
 
-        if(!ruleCacheInited) initRuleCache();
-        
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
+
         Object[] remaps = checkRemaps(inObj, outObj);
         CatalogObjectValue in = (CatalogObjectValue) remaps[0];
         CatalogObjectValue out = (CatalogObjectValue) remaps[1];
 
-        if(!in.equals(inObj)) {
+        if (!in.equals(inObj)) {
             log.info("Process remap {} -> {}", getFullDescription(inObj), getFullDescription(in));
         }
 
-        if(!out.equals(outObj)) {
+        if (!out.equals(outObj)) {
             log.info("Process remap {} -> {}", getFullDescription(outObj), getFullDescription(out));
         }
-        
+
         final String cacheKey = getObjectPairKey(in, out);
 
         log.debug("Compare vals: {}, {}", in.getDescription(), out.getDescription());
@@ -845,20 +892,22 @@ public class ObjectComparator {
 
     public ComparationResult compare(Object inObj, Object outObj) {
 
-        if(!ruleCacheInited) initRuleCache();
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
 
         Object[] remaps = checkRemaps(inObj, outObj);
         Object in = remaps[0];
         Object out = remaps[1];
 
-        if(!in.equals(inObj)) {
+        if (!in.equals(inObj)) {
             log.info("Process remap {} -> {}", getFullDescription(inObj), getFullDescription(in));
         }
 
-        if(!out.equals(outObj)) {
+        if (!out.equals(outObj)) {
             log.info("Process remap {} -> {}", getFullDescription(outObj), getFullDescription(out));
         }
-        
+
         final String cacheKey = getObjectPairKey(in, out);
 
         final boolean classMatch = in.getClass().equals(out.getClass());
@@ -938,7 +987,9 @@ public class ObjectComparator {
 
     public ComparationResult compare(String inRef, String outRef) {
 
-        if(!ruleCacheInited) initRuleCache();
+        if (!ruleCacheInited) {
+            initRuleCache();
+        }
 
         log.debug(
                 "Compare objects {} (ref: {}) <=> {} (ref: {})",

@@ -177,6 +177,36 @@ public class ObjectIndex {
                 .collect(Collectors.toList());
     }
 
+    public static Optional<Object> findObjectEx(ObjectIndex index, String path) {
+
+        Object obj;
+        String pth = "";
+        String[] parts = path.split("\\.", 2);
+        pth = pth + parts[0];
+        parts = parts[1].split("\\.", 2);
+        pth = pth + "." + parts[0];
+        obj = findObject(index, pth).orElse(EMPTY);
+        while(parts.length > 1 && obj != EMPTY) {
+            parts = parts[1].split("\\.", 2);
+            final String nm = parts[0];
+            if(obj instanceof CatalogObjectProperty) {
+                Types types = ((CatalogObjectProperty) obj).getTypes();
+                obj = deRefStatic(types.getRow().get(0).getType()).orElse(EMPTY);
+            }
+            if(obj instanceof CatalogObjectValue) {
+                Types types = ((CatalogObjectValue) obj).getTypes();
+                obj = deRefStatic(types.getRow().get(0).getType()).orElse(EMPTY);
+            }
+            obj = index.getSlavesAndChilds(obj).stream()
+                    .filter((c) -> 
+                            getName(c).equals(nm))
+                    .findFirst().orElse(EMPTY);
+        }
+
+        return Optional.ofNullable(obj);
+        
+    }
+    
     private final Conf conf;
     private final TreeNode rootNode;
     private final HashMap<String, Object> indexRefs;
