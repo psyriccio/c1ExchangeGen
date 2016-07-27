@@ -179,6 +179,8 @@ public class ObjectIndex {
 
     public static Optional<Object> findObjectEx(ObjectIndex index, String path) {
 
+        if(path.equals("<EMPTY>")) return Optional.ofNullable(EMPTY);
+        
         Object obj;
         String pth = "";
         String[] parts = path.split("\\.", 2);

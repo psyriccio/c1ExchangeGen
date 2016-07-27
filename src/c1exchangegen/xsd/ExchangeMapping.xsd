@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" jaxb:extensionBindingPrefixes="xjc" elementFormDefault="unqualified">
     <xsd:element name="Mapping">
         <xsd:complexType>
             <xsd:choice maxOccurs="unbounded">
@@ -11,13 +11,13 @@
                                 <xsd:complexType>
                                     <xsd:attribute name="object" type="xsd:string"/>
                                     <xsd:attribute name="mode" type="xsd:string"/>
-                                    <xsd:attribute name="from" type="xsd:string"/>
-                                    <xsd:attribute name="to" type="xsd:string"/>
+                                    <xsd:attribute name="in" type="xsd:string"/>
+                                    <xsd:attribute name="out" type="xsd:string"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:choice>
-                        <xsd:attribute name="from" type="xsd:string" use="required"/>
-                        <xsd:attribute name="to" type="xsd:string" use="required"/>
+                        <xsd:attribute name="in" type="xsd:string" use="required"/>
+                        <xsd:attribute name="out" type="xsd:string" use="required"/>
                         <xsd:attribute name="mode" type="xsd:string"/>
                     </xsd:complexType>
                 </xsd:element>

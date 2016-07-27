@@ -68,27 +68,27 @@ public class ObjectComparator {
 
     public static Predicate<Mapping.Map> mapPredicateIn(Object obj) {
         return obj == EMPTY ? (Map map) -> false
-                : (Map map) -> (map.getFrom().equals(getFullDescription(obj)))
-                || map.getFrom().equals(getDescription(obj))
-                || ((getDescription(obj).startsWith(map.getFrom())
-                || getDescription(obj).startsWith(map.getFrom())))
-                || (map.getFrom().startsWith("\\*")
-                ? (getDescription(obj).endsWith(map.getFrom())
-                || getDescription(obj).endsWith(map.getFrom())) : false)
-                || (map.getFrom().startsWith("regexp:"))
-                ? getDescription(obj).matches(map.getFrom().replace("regexp:", "")) : false;
+                : (Map map) -> (map.getIn().equals(getFullDescription(obj)))
+                || map.getIn().equals(getDescription(obj))
+                || ((getDescription(obj).startsWith(map.getIn())
+                || getDescription(obj).startsWith(map.getIn())))
+                || (map.getIn().startsWith("\\*")
+                ? (getDescription(obj).endsWith(map.getIn())
+                || getDescription(obj).endsWith(map.getIn())) : false)
+                || (map.getIn().startsWith("regexp:"))
+                ? getDescription(obj).matches(map.getIn().replace("regexp:", "")) : false;
     }
 
     public static Predicate<Mapping.Map> mapPredicateOut(Object obj) {
         return obj == EMPTY ? (Map map) -> false
-                : (Map map) -> (map.getTo().equals(getFullDescription(obj)))
-                || map.getTo().equals(getDescription(obj))
-                || ((getDescription(obj).startsWith(map.getTo())
-                || getDescription(obj).startsWith(map.getTo())))
-                || (getDescription(obj).endsWith(map.getTo())
-                || getDescription(obj).endsWith(map.getTo()))
-                || (map.getTo().startsWith("regexp:"))
-                ? getDescription(obj).matches(map.getTo().replace("regexp:", "")) : false;
+                : (Map map) -> (map.getOut().equals(getFullDescription(obj)))
+                || map.getOut().equals(getDescription(obj))
+                || ((getDescription(obj).startsWith(map.getOut())
+                || getDescription(obj).startsWith(map.getOut())))
+                || (getDescription(obj).endsWith(map.getOut())
+                || getDescription(obj).endsWith(map.getOut()))
+                || (map.getOut().startsWith("regexp:"))
+                ? getDescription(obj).matches(map.getOut().replace("regexp:", "")) : false;
     }
 
     public static MappingMode decodeMode(Mapping.Map mapping, Object obj) {
@@ -129,8 +129,8 @@ public class ObjectComparator {
         mapping.getMap().stream()
                 .forEach((map) -> {
 
-                    if (map.getFrom().equals(descrIn)
-                          || descrIn.startsWith(map.getFrom())) {
+                    if (map.getIn().equals(descrIn)
+                          || descrIn.startsWith(map.getIn())) {
 
                         MappingMode pmode = map.getMode() != null && !map.getMode().isEmpty()
                                 ? MappingMode.valueOf(map.getMode()) : null;
@@ -146,9 +146,9 @@ public class ObjectComparator {
                     rulesIn.addAll(
                             map.getRule().stream()
                             .filter((rule)
-                                    -> ((map.getFrom().startsWith("#regex:")
-                                    ? pathIn.matches(map.getFrom().replace("#regex:", ""))
-                                    : pathIn.startsWith(map.getFrom()))
+                                    -> ((map.getIn().startsWith("#regex:")
+                                    ? pathIn.matches(map.getIn().replace("#regex:", ""))
+                                    : pathIn.startsWith(map.getIn()))
                                     && (rule.getObject().startsWith("#regex:")
                                     ? nameIn.matches(rule.getObject().replace("#regex:", ""))
                                     : (rule.getObject().endsWith("*")
@@ -191,11 +191,11 @@ public class ObjectComparator {
                     rulesOut.addAll(
                             map.getRule().stream()
                             .filter((rule)
-                                    -> ((map.getTo().startsWith("#regex:")
-                                    ? pathOut.matches(map.getTo().replace("#regex:", ""))
-                                    : (map.getTo().endsWith("*")
-                                    ? pathOut.startsWith(map.getTo().replace("*", ""))
-                                    : pathOut.equals(map.getTo())))
+                                    -> ((map.getOut().startsWith("#regex:")
+                                    ? pathOut.matches(map.getOut().replace("#regex:", ""))
+                                    : (map.getOut().endsWith("*")
+                                    ? pathOut.startsWith(map.getOut().replace("*", ""))
+                                    : pathOut.equals(map.getOut())))
                                     && (rule.getObject().startsWith("#regex:")
                                     ? nameOut.matches(rule.getObject().replace("#regex:", ""))
                                     : (rule.getObject().endsWith("*")
@@ -383,8 +383,8 @@ public class ObjectComparator {
         return MappingMode.valueOf(
                 mapping.getMap().stream()
                 .filter(
-                        (rule) -> rule.getFrom().equals(getDescription(in))
-                        && rule.getTo().equals(getDescription(out))
+                        (rule) -> rule.getIn().equals(getDescription(in))
+                        && rule.getOut().equals(getDescription(out))
                 ).map((rule) -> rule.getMode())
                 .findFirst().orElse("NULL")
         );
@@ -395,8 +395,8 @@ public class ObjectComparator {
         result.getMap().addAll(
                 mapping.getMap().stream()
                 .filter(
-                        (rule) -> rule.getFrom().equals(getDescription(obj))
-                        || rule.getTo().equals(getDescription(obj))
+                        (rule) -> rule.getIn().equals(getDescription(obj))
+                        || rule.getOut().equals(getDescription(obj))
                 ).collect(Collectors.toList())
         );
 
@@ -581,11 +581,25 @@ public class ObjectComparator {
                 .filter((rule) -> 
                         rule.getMode().equals(MappingMode.REMAP.name()))
                 .filter((rule) -> 
-                        getFullDescription(in).equals(reverseMapCacheIn.get(rule).getFrom() + "." + rule.getObject()))
+                        getFullDescription(in).startsWith(reverseMapCacheIn.get(rule).getIn() + "." + rule.getObject()))
                 .map(
                         (rule) -> new Object[]{
-                            findObjectEx(inIndex, reverseMapCacheIn.get(rule).getFrom() + "." + rule.getFrom()).orElse(in),
-                            findObjectEx(outIndex, reverseMapCacheIn.get(rule).getTo() + "." + rule.getTo()).orElse(out)
+                            findObjectEx(
+                                    inIndex, 
+                                    getFullDescription(in)
+                                            .replace(
+                                                    reverseMapCacheIn.get(rule).getIn() + "." 
+                                                            + rule.getObject(), 
+                                                    reverseMapCacheIn.get(rule).getIn() + "." 
+                                                            + rule.getIn())).orElse(in),
+                            findObjectEx(
+                                    outIndex, 
+                                    getFullDescription(out)
+                                            .replace(
+                                                    reverseMapCacheIn.get(rule).getOut() + "." 
+                                                            + rule.getObject(), 
+                                                    reverseMapCacheIn.get(rule).getOut() + "." 
+                                                            + rule.getOut())).orElse(out)
                         }).findFirst();
 
         return rems.orElse(new Object[]{in, out});

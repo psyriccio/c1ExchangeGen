@@ -179,10 +179,10 @@ public class C1ExchangeGen {
 
             for (Mapping.Map map : mapping.getMap()) {
                 ObjectComparator comparator = new ObjectComparator(mapping, map, inIdx, outIdx);
-                Object in = ObjectIndex.findObject(inIdx, map.getFrom()).orElse(EMPTY);
-                Object out = ObjectIndex.findObject(outIdx, map.getTo()).orElse(EMPTY);
+                Object in = ObjectIndex.findObject(inIdx, map.getIn()).orElse(EMPTY);
+                Object out = ObjectIndex.findObject(outIdx, map.getOut()).orElse(EMPTY);
                 ComparationResult result = comparator.compare(in, out);
-                log.info("{} ({}) <=> {} ({}) : {}", map.getFrom(), in, map.getTo(), out, result.getStatus());
+                log.info("{} ({}) <=> {} ({}) : {}", map.getIn(), in, map.getOut(), out, result.getStatus());
                 result.getResultItems().forEach((resItem) -> {
                     log.info(
                             "    {} ({}) : {} :> {}",
