@@ -1,28 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" jaxb:extensionBindingPrefixes="xjc" elementFormDefault="unqualified">
-    <xsd:element name="Mapping">
-        <xsd:complexType>
-            <xsd:choice maxOccurs="unbounded">
-                <xsd:element name="map" form="unqualified" maxOccurs="unbounded">
-                    <xsd:complexType>
-                        <xsd:choice maxOccurs="unbounded" minOccurs="0">
-                            <xsd:element name="rule">
-                                <xsd:complexType>
-                                    <xsd:attribute name="object" type="xsd:string"/>
-                                    <xsd:attribute name="mode" type="xsd:string"/>
-                                    <xsd:attribute name="in" type="xsd:string"/>
-                                    <xsd:attribute name="out" type="xsd:string"/>
-                                </xsd:complexType>
-                            </xsd:element>
-                        </xsd:choice>
-                        <xsd:attribute name="in" type="xsd:string" use="required"/>
-                        <xsd:attribute name="out" type="xsd:string" use="required"/>
-                        <xsd:attribute name="mode" type="xsd:string"/>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:attribute name="name" type="xsd:string" use="required"/>
-        </xsd:complexType>
-    </xsd:element>
-</xsd:schema>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" 
+           xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" 
+           jaxb:extensionBindingPrefixes="xjc" 
+           elementFormDefault="unqualified"
+           jaxb:version="2.0">
+    
+    <xs:annotation>
+        <xs:appinfo>
+            <jaxb:globalBindings generateValueClass="false">
+                <xjc:superClass name="c1exchangegen.MappingSchemaBase"/>
+                <xjc:simple />
+            </jaxb:globalBindings>
+        </xs:appinfo>
+    </xs:annotation>
+    <xs:element name="Mapping">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="map" form="unqualified" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:choice maxOccurs="unbounded" minOccurs="0">
+                            <xs:element name="rule">
+                                <xs:complexType>
+                                    <xs:attribute name="object" type="xs:string"/>
+                                    <xs:attribute name="mode" type="xs:string"/>
+                                    <xs:attribute name="in" type="xs:string"/>
+                                    <xs:attribute name="out" type="xs:string"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:choice>
+                        <xs:attribute name="in" type="xs:string" use="required"/>
+                        <xs:attribute name="out" type="xs:string" use="required"/>
+                        <xs:attribute name="mode" type="xs:string"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -6,16 +6,16 @@
 //
 
 
-package c1exchangegen.generated;
+package c1exchangegen.generated.impl;
 
 import javax.xml.bind.annotation.XmlRegistry;
-import c1exchangegen.generated.impl.MappingImpl;
+import c1exchangegen.generated.Mapping;
 
 
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
- * generated in the c1exchangegen.generated package. 
+ * generated in the c1exchangegen.generated.impl package. 
  * <p>An ObjectFactory allows you to programatically 
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
@@ -29,10 +29,9 @@ import c1exchangegen.generated.impl.MappingImpl;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static Void _useJAXBProperties = null;
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: c1exchangegen.generated
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: c1exchangegen.generated.impl
      * 
      */
     public ObjectFactory() {
@@ -42,7 +41,7 @@ public class ObjectFactory {
      * Create an instance of {@link Mapping }
      * 
      */
-    public Mapping createMapping() {
+    public MappingImpl createMapping() {
         return new MappingImpl();
     }
 
@@ -50,7 +49,7 @@ public class ObjectFactory {
      * Create an instance of {@link Mapping.Map }
      * 
      */
-    public Mapping.Map createMappingMap() {
+    public MappingImpl.MapImpl createMappingMap() {
         return new MappingImpl.MapImpl();
     }
 
@@ -58,7 +57,7 @@ public class ObjectFactory {
      * Create an instance of {@link Mapping.Map.Rule }
      * 
      */
-    public Mapping.Map.Rule createMappingMapRule() {
+    public MappingImpl.MapImpl.RuleImpl createMappingMapRule() {
         return new MappingImpl.MapImpl.RuleImpl();
     }
 

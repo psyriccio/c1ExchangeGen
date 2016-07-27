@@ -33,7 +33,8 @@ import java.util.stream.Stream;
 public class ObjectComparator {
 
     public static final ArrayList<Rule> EMPTY_RULE_LIST = new ArrayList<>();
-
+    public static final ObjectFactory OBJ = new ObjectFactory();
+    
     protected static String descrStatic(String prefix, String propName, Object in, Object inVal, Object out, Object outVal) {
         return prefix
                 + " "
@@ -93,25 +94,25 @@ public class ObjectComparator {
 
     public static MappingMode decodeMode(Mapping.Map mapping, Object obj) {
         return MappingMode.valueOf(
-                mapping.getRule().stream()
+                (mapping.getRules().stream()
                 .filter((ruleMapPredicate(obj)))
                 .map((rule) -> rule.getMode())
-                .findFirst().orElse("NULL"));
+                .findFirst().orElse("NULL")).toUpperCase());
     }
 
     public static MappingMode decodeMode(List<Rule> rules, Object obj) {
         return MappingMode.valueOf(
-                rules.stream()
+                (rules.stream()
                 .filter((ruleMapPredicate(obj)))
                 .map((rule) -> rule.getMode())
-                .findFirst().orElse("NULL"));
+                .findFirst().orElse("NULL")).toUpperCase());
     }
 
     public static MappingMode decodeModeNoCheck(List<Rule> rules, Object obj) {
         return MappingMode.valueOf(
-                rules.stream()
+                (rules.stream()
                 .map((rule) -> rule.getMode())
-                .findFirst().orElse("NULL"));
+                .findFirst().orElse("NULL")).toUpperCase());
 
     }
 
@@ -126,17 +127,17 @@ public class ObjectComparator {
         HashMap<Object, List<Rule>> ruleCache = new HashMap<>();
         HashMap<Rule, Map> reverseMapCache = new HashMap<>();
 
-        mapping.getMap().stream()
+        mapping.getMaps().stream()
                 .forEach((map) -> {
 
                     if (map.getIn().equals(descrIn)
                           || descrIn.startsWith(map.getIn())) {
 
                         MappingMode pmode = map.getMode() != null && !map.getMode().isEmpty()
-                                ? MappingMode.valueOf(map.getMode()) : null;
+                                ? MappingMode.valueOf(map.getMode().toUpperCase()) : null;
 
                         if (pmode != null) {
-                            Rule prule = new Rule();
+                            Rule prule = OBJ.createMappingMapRule();
                             prule.setMode(map.getMode());
                             prule.setObject("*");
                             rulesIn.add(prule);
@@ -144,7 +145,7 @@ public class ObjectComparator {
                     }
 
                     rulesIn.addAll(
-                            map.getRule().stream()
+                            map.getRules().stream()
                             .filter((rule)
                                     -> ((map.getIn().startsWith("#regex:")
                                     ? pathIn.matches(map.getIn().replace("#regex:", ""))
@@ -186,10 +187,10 @@ public class ObjectComparator {
         HashMap<Object, List<Rule>> ruleCache = new HashMap<>();
         HashMap<Rule, Map> reverseMapCache = new HashMap<>();
 
-        mapping.getMap().stream()
+        mapping.getMaps().stream()
                 .forEach((map) -> {
                     rulesOut.addAll(
-                            map.getRule().stream()
+                            map.getRules().stream()
                             .filter((rule)
                                     -> ((map.getOut().startsWith("#regex:")
                                     ? pathOut.matches(map.getOut().replace("#regex:", ""))
@@ -381,19 +382,19 @@ public class ObjectComparator {
 
     public static MappingMode checkMapping(Mapping mapping, Object in, Object out) {
         return MappingMode.valueOf(
-                mapping.getMap().stream()
+                (mapping.getMaps().stream()
                 .filter(
                         (rule) -> rule.getIn().equals(getDescription(in))
                         && rule.getOut().equals(getDescription(out))
                 ).map((rule) -> rule.getMode())
-                .findFirst().orElse("NULL")
+                .findFirst().orElse("NULL").toUpperCase())
         );
     }
 
     public static Mapping selectMapping(Mapping mapping, Object obj) {
         Mapping result = (new ObjectFactory()).createMapping();
-        result.getMap().addAll(
-                mapping.getMap().stream()
+        result.getMaps().addAll(
+                mapping.getMaps().stream()
                 .filter(
                         (rule) -> rule.getIn().equals(getDescription(obj))
                         || rule.getOut().equals(getDescription(obj))
@@ -579,7 +580,7 @@ public class ObjectComparator {
                         (lst.stream()))
                 .collect(Collectors.toList()).stream()
                 .filter((rule) -> 
-                        rule.getMode().equals(MappingMode.REMAP.name()))
+                        rule.getMode().toUpperCase().equals(MappingMode.REMAP.name()))
                 .filter((rule) -> 
                         getFullDescription(in).startsWith(reverseMapCacheIn.get(rule).getIn() + "." + rule.getObject()))
                 .map(

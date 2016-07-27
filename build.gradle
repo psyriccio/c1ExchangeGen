@@ -59,6 +59,7 @@ sourceSets {
         resources {
             srcDir 'src'
             include '**/*.ftl'
+            include '**/*.properties'
         }
     }
 }

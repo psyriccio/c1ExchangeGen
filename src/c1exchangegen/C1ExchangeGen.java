@@ -136,7 +136,7 @@ public class C1ExchangeGen {
             }
 
             Mapping mapping = (Mapping) mapUnm.unmarshal(new File(args[3]));
-            log.info("Loaded mapping file! (contains " + Integer.toString(mapping.getMap().size()) + " mapping entries)");
+            log.info("Loaded mapping file! (contains " + Integer.toString(mapping.getMaps().size()) + " mapping entries)");
 
             if (args[0].equalsIgnoreCase("list")) {
                 inIdx.getIndexDescription().forEach((descr, obj) -> {
@@ -177,7 +177,7 @@ public class C1ExchangeGen {
             ProcessingRegistry reg = new ProcessingRegistry();
             ArrayList<ProcessingEntry> prcBuf = new ArrayList<ProcessingEntry>();
 
-            for (Mapping.Map map : mapping.getMap()) {
+            for (Mapping.Map map : mapping.getMaps()) {
                 ObjectComparator comparator = new ObjectComparator(mapping, map, inIdx, outIdx);
                 Object in = ObjectIndex.findObject(inIdx, map.getIn()).orElse(EMPTY);
                 Object out = ObjectIndex.findObject(outIdx, map.getOut()).orElse(EMPTY);
