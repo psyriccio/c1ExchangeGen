@@ -5,25 +5,22 @@
  */
 package c1exchangegen;
 
-import c1exchangegen.generated.Mapping;
-import c1meta.Conf;
+import c1c.meta.C1;
+import c1c.meta.generated.Conf;
 import java.io.File;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static c1exchangegen.ObjectIndex.*;
 import c1exchangegen.codegen.CodeGenerator;
+import c1exchangegen.gui.C1ConfigurationTreeModel;
 import c1exchangegen.gui.ConfigurationForm;
-import c1exchangegen.gui.ObjectIndexTreeModel;
+import com.sun.xml.bind.v2.runtime.IllegalAnnotationException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
+import org.pushingpixels.substance.api.renderers.SubstanceDefaultTreeCellRenderer;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
 
 /**
@@ -34,17 +31,38 @@ public class C1ExchangeGen {
 
     public static Logger log = LoggerFactory.getLogger("~");
 
+    public static Conf IN_CONF;
+    public static Conf OUT_CONF;
+
+    public static void exceptionConsumed(Exception ex) {
+        log.error("Exception consumed: ", ex);
+        if(ex instanceof JAXBException) {
+            JAXBException jex = (JAXBException) ex;
+            log.error(":", jex);
+            log.error("{} \n {} \n {} \n", jex.getClass(), jex.getErrorCode(), jex.getMessage());
+            log.error("{} \n {} \n {} \n", jex.getCause(), jex.getLinkedException(), jex.getStackTrace());
+            if(ex instanceof IllegalAnnotationException) {
+                IllegalAnnotationException aex = (IllegalAnnotationException) jex;
+                log.error("::", aex);
+                log.error(aex.toString());
+            }
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws JAXBException, UnsupportedLookAndFeelException, TemplateException, IOException {
 
+        C1.setExceptionsConsumer(C1ExchangeGen::exceptionConsumed);
+        
         if (args.length == 0) {
             args = "map;./alucom.xml;./resurs.xml;./map.xml".split(";");
         }
 
         if (args.length != 4) {
             System.err.println("usage: c1ExchangeGen [command] [in] [out] [params...]");
+            System.runFinalization();
             System.exit(1);
         }
 
@@ -92,75 +110,33 @@ public class C1ExchangeGen {
         if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("match") || args[0].equalsIgnoreCase("gui")) {
 
             log.info("Initialize JAXB contexts...");
-            JAXBContext xmlContext = JAXBContext.newInstance("c1meta");
-            Unmarshaller xmlUnm = xmlContext.createUnmarshaller();
-            JAXBContext mapContext = JAXBContext.newInstance("c1exchangegen.generated");
-            Unmarshaller mapUnm = mapContext.createUnmarshaller();
 
             log.info("Loading models...");
-            Conf inConf = (Conf) xmlUnm.unmarshal(new File(args[1]));
-            log.info("Loaded configuration (in): '" + inConf.getCatalogObjectConf().getDescription() + ":" + inConf.getCatalogObjectConf().getVersion() + "', contains " + Integer.toString(inConf.getObjects().size()) + " objects");
+            Conf inConf = C1.loadConfiguration(
+                    new File(args[1]))
+                    .orElseThrow(
+                            () -> {
+                                return new RuntimeException("Cant load configuration (1)");
+                            });
 
-            Conf outConf = (Conf) xmlUnm.unmarshal(new File(args[2]));
-            log.info("Loaded configuration (out): '" + outConf.getCatalogObjectConf().getDescription() + ":" + outConf.getCatalogObjectConf().getVersion() + "', contains " + Integer.toString(outConf.getObjects().size()) + " objects");
+            log.info("Loaded configuration (in): '" + inConf.getName() + ":" + "" + "', contains " + Integer.toString(inConf.getChildrens().size()) + " objects");
+
+            Conf outConf = C1.loadConfiguration(
+                    new File(args[2]))
+                    .orElseThrow(
+                            () -> {
+                                return new RuntimeException("Cant load configuration (2)");
+                            });
+
+            log.info("Loaded configuration (out): '" + outConf.getName() + ":" + "" + "', contains " + Integer.toString(outConf.getChildrens().size()) + " objects in root");
+
+            IN_CONF = inConf;
+            OUT_CONF = outConf;
 
             log.info("Building index...");
-            ObjectIndex inIdx = new ObjectIndex(inConf);
-            ObjectIndex outIdx = new ObjectIndex(outConf);
-            log.info("Index builded. Total object count: " + Integer.toString(ObjectIndex.getIndexRefsStatic().size()));
-
-            if (args[0].equalsIgnoreCase("match")) {
-                List<Object> lstIn = ObjectIndex.findMatches(inIdx, args[3]);
-                List<Object> lstOut = ObjectIndex.findMatches(outIdx, args[3]);
-                lstIn.forEach((obj) -> {
-                    log.info(
-                            "in: {}, class: {}, ref: {}, owner: {}, types: {}",
-                            getDescription(obj),
-                            getClassSuffix(obj),
-                            getRef(obj),
-                            getDescription(getOwner(obj).orElse(ObjectIndex.EMPTY)),
-                            getTypesString(obj)
-                    );
-                });
-                lstOut.forEach((obj) -> {
-                    log.info(
-                            "out: {}, class: {}, ref: {}, owner: {}, types: {}",
-                            getDescription(obj),
-                            getClassSuffix(obj),
-                            getRef(obj),
-                            getDescription(getOwner(obj).orElse(ObjectIndex.EMPTY)),
-                            getTypesString(obj)
-                    );
-                });
-                System.exit(0);
-            }
-
-            Mapping mapping = (Mapping) mapUnm.unmarshal(new File(args[3]));
-            log.info("Loaded mapping file! (contains " + Integer.toString(mapping.getMaps().size()) + " mapping entries)");
-
-            if (args[0].equalsIgnoreCase("list")) {
-                inIdx.getIndexDescription().forEach((descr, obj) -> {
-                    log.info(
-                            "in: {}, class: {}, ref: {}, owner: {}, types: {}",
-                            getDescription(obj),
-                            getClassSuffix(obj),
-                            getRef(obj),
-                            getDescription(getOwner(obj).orElse(ObjectIndex.EMPTY)),
-                            getTypesString(obj)
-                    );
-                });
-                inIdx.getIndexDescription().forEach((descr, obj) -> {
-                    log.info(
-                            "out: {}, class: {}, ref: {}, owner: {}, types: {}",
-                            getDescription(obj),
-                            getClassSuffix(obj),
-                            getRef(obj),
-                            getDescription(getOwner(obj).orElse(ObjectIndex.EMPTY)),
-                            getTypesString(obj)
-                    );
-                });
-                System.exit(0);
-            }
+            //ObjectIndex inIdx = new ObjectIndex(inConf);
+            //ObjectIndex outIdx = new ObjectIndex(outConf);
+            log.info("Index builded. Total object count: " + C1.getALL(inConf).size() + C1.getALL(outConf).size());
 
             if (args[0].equalsIgnoreCase("gui")) {
                 java.awt.EventQueue.invokeLater(new Runnable() {
@@ -168,50 +144,12 @@ public class C1ExchangeGen {
                     public void run() {
                         GraphiteSkin graphiteSkin = new GraphiteSkin();
                         SubstanceLookAndFeel.setSkin(graphiteSkin);
-                        //
-                        new ConfigurationForm(new ObjectIndexTreeModel(inIdx)).setVisible(true);
+                        new ConfigurationForm(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null).setVisible(true);
                     }
                 });
             }
 
-            ProcessingRegistry reg = new ProcessingRegistry();
-            ArrayList<ProcessingEntry> prcBuf = new ArrayList<ProcessingEntry>();
-
-            for (Mapping.Map map : mapping.getMaps()) {
-                ObjectComparator comparator = new ObjectComparator(mapping, map, inIdx, outIdx);
-                Object in = ObjectIndex.findObject(inIdx, map.getIn()).orElse(EMPTY);
-                Object out = ObjectIndex.findObject(outIdx, map.getOut()).orElse(EMPTY);
-                ComparationResult result = comparator.compare(in, out);
-                log.info("{} ({}) <=> {} ({}) : {}", map.getIn(), in, map.getOut(), out, result.getStatus());
-                result.getResultItems().forEach((resItem) -> {
-                    log.info(
-                            "    {} ({}) : {} :> {}",
-                            getDescription(resItem.getObjectIn()) + ", "
-                            + getDescription(resItem.getObjectOut()),
-                            resItem.getWhere(),
-                            resItem.getDiffKind(),
-                            resItem.getDescription()
-                    );
-                });
-
-            }
-
         }
-
-//        for(Object obj : objects) {
-//            if(obj instanceof CatalogObjectObj) {
-//                CatalogObjectObj cObj = (CatalogObjectObj) obj;
-//                System.out.println("Obj: " + cObj.getName());
-//            }
-//            if(obj instanceof CatalogObjectProperty) {
-//                CatalogObjectProperty cObj = (CatalogObjectProperty) obj;
-//                System.out.println("Prop: " + cObj.getDescription() + ", " + cObj.getKind() + " in " + cObj.getOwner().getContent());
-//            }
-//            if(obj instanceof CatalogObjectValue) {
-//                CatalogObjectValue cObj = (CatalogObjectValue) obj;
-//                System.out.println("Val: " + cObj.getDescription() + ", " + cObj.getTypes().toString() + " in " + cObj.getOwner().getContent());
-//            }
-//        }
     }
 
 }
