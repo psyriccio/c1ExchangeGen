@@ -23,17 +23,22 @@ public class ConfigurationForm extends javax.swing.JFrame {
         initComponents(); 
     }
 
-    public ConfigurationForm(TreeModel model1, TreeModel model2, TreeModel model3) throws HeadlessException {
-        initComponents();
-        this.jConfTree1.setModel(model1);
-        this.jConfTree1.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
-        this.jConfTree1.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
-        this.jConfTree2.setModel(model2);
-        this.jConfTree2.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
-        this.jConfTree2.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
-        this.jTreeResult.setModel(model3);
-        this.jTreeResult.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
-        this.jTreeResult.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
+    public void setModels(TreeModel modelIn, TreeModel modelOut, TreeModel modelRes) {
+        if(modelIn != null) { 
+            this.jConfTree1.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
+            this.jConfTree1.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
+            jConfTree1.setModel(modelIn);
+        }
+        if(modelOut != null) {
+            this.jConfTree2.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
+            this.jConfTree2.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
+            jConfTree2.setModel(modelOut);
+        }
+        if(modelRes != null) {
+            this.jTreeResult.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
+            this.jTreeResult.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
+            jTreeResult.setModel(modelRes);
+        }
     }
     
     /**
@@ -45,51 +50,81 @@ public class ConfigurationForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jSplitPane1 = new javax.swing.JSplitPane();
+        jToolBarMain = new javax.swing.JToolBar();
+        jSP_Log_Main = new javax.swing.JSplitPane();
+        jSP_InOut_Res = new javax.swing.JSplitPane();
+        jSP_In_Out = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jConfTree1 = new javax.swing.JTree();
         jScrollPane1 = new javax.swing.JScrollPane();
         jConfTree2 = new javax.swing.JTree();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTreeResult = new javax.swing.JTree();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1024, 768));
+        setTitle("c1ExchangeGen");
+        setPreferredSize(new java.awt.Dimension(1600, 800));
 
-        jSplitPane2.setDividerLocation(600);
-        jSplitPane2.setResizeWeight(0.7);
+        jToolBarMain.setRollover(true);
 
-        jSplitPane1.setDividerLocation(300);
-        jSplitPane1.setResizeWeight(0.3);
+        jSP_Log_Main.setDividerLocation(600);
+        jSP_Log_Main.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSP_Log_Main.setResizeWeight(1.0);
+        jSP_Log_Main.setToolTipText("");
+        jSP_Log_Main.setContinuousLayout(true);
+
+        jSP_InOut_Res.setDividerLocation(1000);
+
+        jSP_In_Out.setDividerLocation(500);
 
         jConfTree1.setModel(null);
         jScrollPane2.setViewportView(jConfTree1);
 
-        jSplitPane1.setLeftComponent(jScrollPane2);
+        jSP_In_Out.setLeftComponent(jScrollPane2);
 
         jConfTree2.setModel(null);
+        jConfTree2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jScrollPane1.setViewportView(jConfTree2);
         jConfTree2.getAccessibleContext().setAccessibleName("jTree");
 
-        jSplitPane1.setRightComponent(jScrollPane1);
+        jSP_In_Out.setRightComponent(jScrollPane1);
 
-        jSplitPane2.setLeftComponent(jSplitPane1);
+        jSP_InOut_Res.setLeftComponent(jSP_In_Out);
 
+        jTreeResult.setModel(null);
         jTreeResult.setToolTipText("");
         jScrollPane3.setViewportView(jTreeResult);
 
-        jSplitPane2.setRightComponent(jScrollPane3);
+        jSP_InOut_Res.setRightComponent(jScrollPane3);
+
+        jSP_Log_Main.setTopComponent(jSP_InOut_Res);
+
+        jTextPane1.setEditable(false);
+        jTextPane1.setName(""); // NOI18N
+        jTextPane1.setPreferredSize(new java.awt.Dimension(100, 100));
+        jScrollPane4.setViewportView(jTextPane1);
+
+        jSP_Log_Main.setRightComponent(jScrollPane4);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jToolBarMain, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(1490, Short.MAX_VALUE))
+            .addComponent(jSP_Log_Main)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 718, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jToolBarMain, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSP_Log_Main, javax.swing.GroupLayout.DEFAULT_SIZE, 799, Short.MAX_VALUE))
         );
 
         pack();
@@ -98,11 +133,15 @@ public class ConfigurationForm extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree jConfTree1;
     private javax.swing.JTree jConfTree2;
+    private javax.swing.JSplitPane jSP_InOut_Res;
+    private javax.swing.JSplitPane jSP_In_Out;
+    private javax.swing.JSplitPane jSP_Log_Main;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JToolBar jToolBarMain;
     private javax.swing.JTree jTreeResult;
     // End of variables declaration//GEN-END:variables
 }

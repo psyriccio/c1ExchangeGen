@@ -14,14 +14,18 @@ import org.slf4j.LoggerFactory;
 import c1exchangegen.codegen.CodeGenerator;
 import c1exchangegen.gui.C1ConfigurationTreeModel;
 import c1exchangegen.gui.ConfigurationForm;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.turbo.TurboFilter;
+import ch.qos.logback.core.spi.FilterReply;
 import com.sun.xml.bind.v2.runtime.IllegalAnnotationException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.util.Date;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
-import org.pushingpixels.substance.api.renderers.SubstanceDefaultTreeCellRenderer;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
+import org.slf4j.Marker;
 
 /**
  *
@@ -29,33 +33,35 @@ import org.pushingpixels.substance.api.skin.GraphiteSkin;
  */
 public class C1ExchangeGen {
 
-    public static Logger log = LoggerFactory.getLogger("~");
+    public static ConfigurationForm MAIN_FORM;
 
+    public static Logger log = LoggerFactory.getLogger("~");
+    
     public static Conf IN_CONF;
     public static Conf OUT_CONF;
 
     public static void exceptionConsumed(Exception ex) {
         log.error("Exception consumed: ", ex);
-        if(ex instanceof JAXBException) {
+        if (ex instanceof JAXBException) {
             JAXBException jex = (JAXBException) ex;
             log.error(":", jex);
             log.error("{} \n {} \n {} \n", jex.getClass(), jex.getErrorCode(), jex.getMessage());
             log.error("{} \n {} \n {} \n", jex.getCause(), jex.getLinkedException(), jex.getStackTrace());
-            if(ex instanceof IllegalAnnotationException) {
+            if (ex instanceof IllegalAnnotationException) {
                 IllegalAnnotationException aex = (IllegalAnnotationException) jex;
                 log.error("::", aex);
                 log.error(aex.toString());
             }
         }
     }
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws JAXBException, UnsupportedLookAndFeelException, TemplateException, IOException {
 
         C1.setExceptionsConsumer(C1ExchangeGen::exceptionConsumed);
-        
+
         if (args.length == 0) {
             args = "map;./alucom.xml;./resurs.xml;./map.xml".split(";");
         }
@@ -64,6 +70,18 @@ public class C1ExchangeGen {
             System.err.println("usage: c1ExchangeGen [command] [in] [out] [params...]");
             System.runFinalization();
             System.exit(1);
+        }
+
+        if (args[0].equalsIgnoreCase("gui")) {
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    GraphiteSkin graphiteSkin = new GraphiteSkin();
+                    SubstanceLookAndFeel.setSkin(graphiteSkin);
+                    MAIN_FORM = new ConfigurationForm();
+                    MAIN_FORM.setVisible(true);
+                }
+            });
         }
 
         if (args[0].equals("test")) {
@@ -136,19 +154,10 @@ public class C1ExchangeGen {
             log.info("Building index...");
             //ObjectIndex inIdx = new ObjectIndex(inConf);
             //ObjectIndex outIdx = new ObjectIndex(outConf);
-            log.info("Index builded. Total object count: " + C1.getALL(inConf).size() + C1.getALL(outConf).size());
+            log.info("Index builded. Total object count: {}", (C1.getALL(inConf).size() + C1.getALL(outConf).size()));
 
-            if (args[0].equalsIgnoreCase("gui")) {
-                java.awt.EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        GraphiteSkin graphiteSkin = new GraphiteSkin();
-                        SubstanceLookAndFeel.setSkin(graphiteSkin);
-                        new ConfigurationForm(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null).setVisible(true);
-                    }
-                });
-            }
-
+            MAIN_FORM.setModels(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null);
+            
         }
     }
 

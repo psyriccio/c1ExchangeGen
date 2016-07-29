@@ -5,7 +5,9 @@
  */
 package c1exchangegen.gui;
 
+import c1c.meta.generated.Catalog;
 import c1c.meta.generated.Conf;
+import c1c.meta.generated.Document;
 import c1c.meta.generated.MetaObject;
 import c1c.meta.generated.impl.MetaRef;
 import c1c.meta.generated.impl.MetaVertualDirectory;
@@ -30,6 +32,7 @@ public class C1ConfigurationTreeNode implements TreeNode {
         this.parent = parent;
         this.childs = new ArrayList<>();
         this.obj = obj;
+                
         if(obj instanceof Conf) {
         
             List<MetaObject> sublistCatalogs = obj.asConf().getCatalogs().stream().map((cat) -> (MetaObject) cat).collect(Collectors.toList());
@@ -42,6 +45,32 @@ public class C1ConfigurationTreeNode implements TreeNode {
             
             childs.add(dirCat);
             childs.add(dirDoc);
+        
+        } else if(obj instanceof Catalog) {
+
+            List<MetaObject> sublistProperties = obj.asCatalog().getProperties().stream().map((pr) -> (MetaObject) pr).collect(Collectors.toList());
+            List<MetaObject> sublistTabSects = obj.asCatalog().getTabularSections().stream().map((ts) -> (MetaObject) ts).collect(Collectors.toList());
+            MetaVertualDirectory props = new MetaVertualDirectory("Свойства", "Свойства", obj, sublistProperties);
+            MetaVertualDirectory tabs = new MetaVertualDirectory("Табличные части", "Табличные части", obj, sublistTabSects);
+            
+            C1ConfigurationTreeNode dirProps = new C1ConfigurationTreeNode(this, props);
+            C1ConfigurationTreeNode dirTabs = new C1ConfigurationTreeNode(this, tabs);
+            
+            childs.add(dirProps);
+            childs.add(dirTabs);
+            
+        } else if(obj instanceof Document) {
+
+            List<MetaObject> sublistProperties = obj.asDocument().getProperties().stream().map((pr) -> (MetaObject) pr).collect(Collectors.toList());
+            List<MetaObject> sublistTabSects = obj.asDocument().getTabularSections().stream().map((ts) -> (MetaObject) ts).collect(Collectors.toList());
+            MetaVertualDirectory props = new MetaVertualDirectory("Свойства", "Свойства", obj, sublistProperties);
+            MetaVertualDirectory tabs = new MetaVertualDirectory("Табличные части", "Табличные части", obj, sublistTabSects);
+            
+            C1ConfigurationTreeNode dirProps = new C1ConfigurationTreeNode(this, props);
+            C1ConfigurationTreeNode dirTabs = new C1ConfigurationTreeNode(this, tabs);
+            
+            childs.add(dirProps);
+            childs.add(dirTabs);
             
         } else {
             obj.getChildrens().stream().forEach((cobj) -> {
