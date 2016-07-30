@@ -9,23 +9,23 @@ import c1c.meta.C1;
 import c1c.meta.generated.Conf;
 import java.io.File;
 import javax.xml.bind.JAXBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import c1exchangegen.codegen.CodeGenerator;
 import c1exchangegen.gui.C1ConfigurationTreeModel;
 import c1exchangegen.gui.ConfigurationForm;
-import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.turbo.TurboFilter;
-import ch.qos.logback.core.spi.FilterReply;
+import ch.qos.logback.core.util.StatusPrinter;
 import com.sun.xml.bind.v2.runtime.IllegalAnnotationException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
-import org.slf4j.Marker;
+import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *
@@ -35,8 +35,8 @@ public class C1ExchangeGen {
 
     public static ConfigurationForm MAIN_FORM;
 
-    public static Logger log = LoggerFactory.getLogger("~");
-    
+    public static Logger log = (Logger) getLogger("c1Ex");
+
     public static Conf IN_CONF;
     public static Conf OUT_CONF;
 
@@ -55,15 +55,68 @@ public class C1ExchangeGen {
         }
     }
 
+    public static Thread startLoadWorker(File fl, PlaceKind place) {
+        if (place != PlaceKind.PLACE_IN && place != PlaceKind.PLACE_OUT) {
+            return null;
+        }
+        Thread worker = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                log.info("Worker started {}", Thread.currentThread());
+                try {
+                    log.info("Loading model from {}", fl);
+                    if(place == PlaceKind.PLACE_IN) {
+                        c1exchangegen.C1ExchangeGen.IN_CONF = C1.loadConfiguration(fl).orElse(null);
+                    } else {
+                        c1exchangegen.C1ExchangeGen.OUT_CONF = C1.loadConfiguration(fl).orElse(null);
+                    }
+                } catch (JAXBException ex) {
+                    log.error("Exception: ", ex);
+                }
+                if ((place == PlaceKind.PLACE_IN && c1exchangegen.C1ExchangeGen.IN_CONF == null) 
+                        || (place == PlaceKind.PLACE_OUT && c1exchangegen.C1ExchangeGen.OUT_CONF == null)) {
+                    log.error("Eroor loading model");
+                } else {
+                    log.info("Model loaded, opening in editor...");
+                    java.awt.EventQueue.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            log.info("Setting model");
+                            c1exchangegen.C1ExchangeGen.MAIN_FORM.setModels(
+                                    place == PlaceKind.PLACE_IN 
+                                            ? new C1ConfigurationTreeModel(
+                                                    c1exchangegen.C1ExchangeGen.IN_CONF) 
+                                            : null,
+                                    place == PlaceKind.PLACE_OUT 
+                                            ? new C1ConfigurationTreeModel(
+                                                    c1exchangegen.C1ExchangeGen.OUT_CONF) 
+                                            : null,
+                                    null);
+                            log.info("Worker done {}", Thread.currentThread());
+                        }
+                    });
+                }
+            }
+        }, "WRK:" + Long.toHexString(Math.round(Math.random() * 1000)).substring(1, 3));
+        log.info("Starting worker {}", worker);
+        worker.start();
+        return worker;
+    }
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws JAXBException, UnsupportedLookAndFeelException, TemplateException, IOException {
+    public static void main(String[] args) throws JAXBException, UnsupportedLookAndFeelException, TemplateException, IOException, InterruptedException, InvocationTargetException {
 
         C1.setExceptionsConsumer(C1ExchangeGen::exceptionConsumed);
 
+        // assume SLF4J is bound to logback in the current environment
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        // print logback's internal status
+        StatusPrinter.print(lc);
+
         if (args.length == 0) {
-            args = "map;./alucom.xml;./resurs.xml;./map.xml".split(";");
+            args = "gui;./alucom.xml;./resurs.xml;./map.xml".split(";");
         }
 
         if (args.length != 4) {
@@ -73,12 +126,17 @@ public class C1ExchangeGen {
         }
 
         if (args[0].equalsIgnoreCase("gui")) {
-            java.awt.EventQueue.invokeLater(new Runnable() {
+            java.awt.EventQueue.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
+                    Thread.currentThread().setName("UI");
                     GraphiteSkin graphiteSkin = new GraphiteSkin();
                     SubstanceLookAndFeel.setSkin(graphiteSkin);
-                    MAIN_FORM = new ConfigurationForm();
+                    try {
+                        MAIN_FORM = new ConfigurationForm(log);
+                    } catch (UnsupportedEncodingException ex) {
+                        log.error("Exception: ", ex);
+                    }
                     MAIN_FORM.setVisible(true);
                 }
             });
@@ -125,7 +183,7 @@ public class C1ExchangeGen {
                     ));
         }
 
-        if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("match") || args[0].equalsIgnoreCase("gui")) {
+        if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("match")) {
 
             log.info("Initialize JAXB contexts...");
 
@@ -156,8 +214,11 @@ public class C1ExchangeGen {
             //ObjectIndex outIdx = new ObjectIndex(outConf);
             log.info("Index builded. Total object count: {}", (C1.getALL(inConf).size() + C1.getALL(outConf).size()));
 
-            MAIN_FORM.setModels(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null);
-            
+//            if(args[0].equalsIgnoreCase("gui")) {
+//                java.awt.EventQueue.invokeLater(() -> {
+//                    MAIN_FORM.setModels(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null);
+//                });
+//            }
         }
     }
 
