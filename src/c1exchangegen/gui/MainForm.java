@@ -5,17 +5,22 @@
  */
 package c1exchangegen.gui;
 
-import c1c.meta.C1;
+import c1exchangegen.C1ExchangeGen;
 import c1exchangegen.PlaceKind;
+import c1exchangegen.generated.Mapping;
+import c1exchangegen.generated.Mapping.Map;
+import c1exchangegen.generated.impl.JAXBContextFactory;
+import c1exchangegen.mapping.MappingNode;
+import c1exchangegen.mapping.MappingTreeModel;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import java.awt.FileDialog;
-import java.io.File;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.TreeModel;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.pushingpixels.substance.api.SubstanceConstants;
@@ -30,14 +35,6 @@ public class MainForm extends javax.swing.JFrame {
 
     public static Logger log = (Logger) LoggerFactory.getLogger("c1Ex.Form");
 
-    protected void appendToLogArea(CharSequence csq) {
-        jLogArea.setText(jLogArea.getText() + csq);
-    }
-
-    protected void appendToLogArea(char c) {
-        jLogArea.setText(jLogArea.getText() + c);
-    }
-
     /**
      * Creates new form ConfigurationForm
      *
@@ -51,35 +48,11 @@ public class MainForm extends javax.swing.JFrame {
         System.setOut(
                 new PrintStream(
                         new WriterOutputStream(
-                                new JTextAreaWriter(jLogArea), "UTF-8"), 
-                        true, 
+                                new JTextAreaWriter(jLogArea), "UTF-8"),
+                        true,
                         "UTF-8")
         );
-        
-//        System.setOut(
-//                new PrintStream(
-//                        new WriterOutputStream(
-//                                new StringWriter(
-//                                        new AppendableOutputStream(
-//                                                new Appendable() {
-//                                            @Override
-//                                            public Appendable append(CharSequence csq) throws IOException {
-//                                                appendToLogArea(csq);
-//                                                return this;
-//                                            }
-//
-//                                            @Override
-//                                            public Appendable append(CharSequence csq, int start, int end) throws IOException {
-//                                                appendToLogArea(csq.subSequence(start, end));
-//                                                return this;
-//                                            }
-//
-//                                            @Override
-//                                            public Appendable append(char c) throws IOException {
-//                                                appendToLogArea(c);
-//                                                return this;
-//                                            }
-//                                        })), "UTF-8"), true, "UTF-8"));
+
         log.info("GUI module started");
     }
 
@@ -90,12 +63,14 @@ public class MainForm extends javax.swing.JFrame {
             this.jConfTree1.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
             this.jConfTree1.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
             jConfTree1.setModel(modelIn);
+            log.info("Loaded {} objects", C1ExchangeGen.IN_CONF.getALL().size());
         }
         if (modelOut != null) {
             log.info("Setting 'OUT'-model");
             this.jConfTree2.putClientProperty(SubstanceLookAndFeel.FOCUS_KIND, SubstanceConstants.FocusKind.NONE);
             this.jConfTree2.putClientProperty(SubstanceLookAndFeel.TREE_SMART_SCROLL_ANIMATION_KIND, false);
             jConfTree2.setModel(modelOut);
+            log.info("Loaded {} objects", C1ExchangeGen.OUT_CONF.getALL().size());
         }
         if (modelRes != null) {
             log.info("Setting 'RESULT'-model");
@@ -111,11 +86,46 @@ public class MainForm extends javax.swing.JFrame {
         jfc.setDialogType(JFileChooser.OPEN_DIALOG);
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         jfc.setMultiSelectionEnabled(false);
-        if(jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             c1exchangegen.C1ExchangeGen.startLoadWorker(jfc.getSelectedFile(), place);
         }
     }
-    
+
+    protected void doLoadMapAction() {
+        JFileChooser jfc = new JFileChooser();
+        jfc.setFileFilter(new FileNameExtensionFilter("*.xml", "xml"));
+        jfc.setDialogType(JFileChooser.OPEN_DIALOG);
+        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jfc.setMultiSelectionEnabled(false);
+        if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            try {
+                JAXBContext jaxbContext = JAXBContextFactory
+                        .createContext(
+                                "c1exchangegen.generated",
+                                c1exchangegen.generated.Mapping.class.getClassLoader(),
+                                new HashMap());
+                Mapping maps = (Mapping) jaxbContext.createUnmarshaller().unmarshal(jfc.getSelectedFile());
+                String[] in = new String[maps.getMaps().size()];
+                String[] out = new String[maps.getMaps().size()];
+                int k = 0;
+                for(Map map : maps.getMaps()) {
+                    in[k] = map.getIn();
+                    out[k] = map.getOut();
+                    k++;
+                }
+                
+                log.info("Processing mapping");
+                jTreeResult.setModel(
+                        new MappingTreeModel(
+                                new MappingNode("Test", in, out)));
+                
+            } catch (JAXBException ex) {
+                log.error("Exeption: ", ex);
+            }
+        }
+        
+    }
+
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT
      * modify this code. The content of this method is always regenerated by the Form Editor.
@@ -129,20 +139,30 @@ public class MainForm extends javax.swing.JFrame {
         jBtnLoadOut = new javax.swing.JButton();
         jBtnLoadMapping = new javax.swing.JButton();
         jSP_Log_Main = new javax.swing.JSplitPane();
-        jSP_InOut_Res = new javax.swing.JSplitPane();
-        jSP_In_Out = new javax.swing.JSplitPane();
+        jSP_InRes_Out = new javax.swing.JSplitPane();
+        jSP_In_Result = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jConfTree1 = new javax.swing.JTree();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jConfTree2 = new javax.swing.JTree();
-        jScrollPane3 = new javax.swing.JScrollPane();
         jTreeResult = new javax.swing.JTree();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jConfTree2 = new javax.swing.JTree();
         jScrollPane4 = new javax.swing.JScrollPane();
         jLogArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("c1ExchangeGen");
         setPreferredSize(new java.awt.Dimension(1600, 800));
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jToolBarMain.setFloatable(false);
         jToolBarMain.setRollover(true);
@@ -193,6 +213,11 @@ public class MainForm extends javax.swing.JFrame {
         jBtnLoadMapping.setMinimumSize(new java.awt.Dimension(36, 36));
         jBtnLoadMapping.setPreferredSize(new java.awt.Dimension(36, 36));
         jBtnLoadMapping.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnLoadMapping.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnLoadMappingActionPerformed(evt);
+            }
+        });
         jToolBarMain.add(jBtnLoadMapping);
 
         jSP_Log_Main.setDividerLocation(600);
@@ -201,31 +226,31 @@ public class MainForm extends javax.swing.JFrame {
         jSP_Log_Main.setToolTipText("");
         jSP_Log_Main.setContinuousLayout(true);
 
-        jSP_InOut_Res.setDividerLocation(1000);
+        jSP_InRes_Out.setDividerLocation(1000);
 
-        jSP_In_Out.setDividerLocation(500);
+        jSP_In_Result.setDividerLocation(500);
 
         jConfTree1.setModel(null);
         jScrollPane2.setViewportView(jConfTree1);
 
-        jSP_In_Out.setLeftComponent(jScrollPane2);
-
-        jConfTree2.setModel(null);
-        jConfTree2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jScrollPane1.setViewportView(jConfTree2);
-        jConfTree2.getAccessibleContext().setAccessibleName("jTree");
-
-        jSP_In_Out.setRightComponent(jScrollPane1);
-
-        jSP_InOut_Res.setLeftComponent(jSP_In_Out);
+        jSP_In_Result.setLeftComponent(jScrollPane2);
 
         jTreeResult.setModel(null);
-        jTreeResult.setToolTipText("");
-        jScrollPane3.setViewportView(jTreeResult);
+        jTreeResult.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jScrollPane1.setViewportView(jTreeResult);
+        jTreeResult.getAccessibleContext().setAccessibleName("jTree");
 
-        jSP_InOut_Res.setRightComponent(jScrollPane3);
+        jSP_In_Result.setRightComponent(jScrollPane1);
 
-        jSP_Log_Main.setTopComponent(jSP_InOut_Res);
+        jSP_InRes_Out.setLeftComponent(jSP_In_Result);
+
+        jConfTree2.setModel(null);
+        jConfTree2.setToolTipText("");
+        jScrollPane3.setViewportView(jConfTree2);
+
+        jSP_InRes_Out.setRightComponent(jScrollPane3);
+
+        jSP_Log_Main.setTopComponent(jSP_InRes_Out);
 
         jLogArea.setEditable(false);
         jLogArea.setColumns(20);
@@ -273,7 +298,9 @@ public class MainForm extends javax.swing.JFrame {
     }//GEN-LAST:event_jLogAreaComponentResized
 
     private void jLogAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLogAreaMouseClicked
-        if(evt.getClickCount() > 1) jLogArea.setCaretPosition(jLogArea.getText().length());
+        if (evt.getClickCount() > 1) {
+            jLogArea.setCaretPosition(jLogArea.getText().length());
+        }
     }//GEN-LAST:event_jLogAreaMouseClicked
 
     private void jBtnLoadInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnLoadInActionPerformed
@@ -284,6 +311,22 @@ public class MainForm extends javax.swing.JFrame {
         doLoadFileAction(PlaceKind.PLACE_OUT);
     }//GEN-LAST:event_jBtnLoadOutActionPerformed
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        jSP_In_Result.setDividerLocation(0.45);
+        jSP_InRes_Out.setDividerLocation(0.69);
+        jSP_Log_Main.setDividerLocation(0.75);
+    }//GEN-LAST:event_formWindowOpened
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        jSP_In_Result.setDividerLocation(0.45);
+        jSP_InRes_Out.setDividerLocation(0.69);
+        jSP_Log_Main.setDividerLocation(0.75);
+    }//GEN-LAST:event_formComponentResized
+
+    private void jBtnLoadMappingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnLoadMappingActionPerformed
+        doLoadMapAction();
+    }//GEN-LAST:event_jBtnLoadMappingActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jBtnLoadIn;
     private javax.swing.JButton jBtnLoadMapping;
@@ -291,8 +334,8 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JTree jConfTree1;
     private javax.swing.JTree jConfTree2;
     private javax.swing.JTextArea jLogArea;
-    private javax.swing.JSplitPane jSP_InOut_Res;
-    private javax.swing.JSplitPane jSP_In_Out;
+    private javax.swing.JSplitPane jSP_InRes_Out;
+    private javax.swing.JSplitPane jSP_In_Result;
     private javax.swing.JSplitPane jSP_Log_Main;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;

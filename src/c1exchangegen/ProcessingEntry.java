@@ -5,6 +5,8 @@
  */
 package c1exchangegen;
 
+import c1exchangegen.mapping.MappingMode;
+
 /**
  *
  * @author psyriccio

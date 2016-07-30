@@ -26,7 +26,6 @@ import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
 import org.slf4j.LoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *
@@ -66,7 +65,7 @@ public class C1ExchangeGen {
                 log.info("Worker started {}", Thread.currentThread());
                 try {
                     log.info("Loading model from {}", fl);
-                    if(place == PlaceKind.PLACE_IN) {
+                    if (place == PlaceKind.PLACE_IN) {
                         c1exchangegen.C1ExchangeGen.IN_CONF = C1.loadConfiguration(fl).orElse(null);
                     } else {
                         c1exchangegen.C1ExchangeGen.OUT_CONF = C1.loadConfiguration(fl).orElse(null);
@@ -74,7 +73,7 @@ public class C1ExchangeGen {
                 } catch (JAXBException ex) {
                     log.error("Exception: ", ex);
                 }
-                if ((place == PlaceKind.PLACE_IN && c1exchangegen.C1ExchangeGen.IN_CONF == null) 
+                if ((place == PlaceKind.PLACE_IN && c1exchangegen.C1ExchangeGen.IN_CONF == null)
                         || (place == PlaceKind.PLACE_OUT && c1exchangegen.C1ExchangeGen.OUT_CONF == null)) {
                     log.error("Eroor loading model");
                 } else {
@@ -84,21 +83,21 @@ public class C1ExchangeGen {
                         public void run() {
                             log.info("Setting model");
                             c1exchangegen.C1ExchangeGen.MAIN_FORM.setModels(
-                                    place == PlaceKind.PLACE_IN 
+                                    place == PlaceKind.PLACE_IN
                                             ? new C1ConfigurationTreeModel(
-                                                    c1exchangegen.C1ExchangeGen.IN_CONF) 
+                                                    c1exchangegen.C1ExchangeGen.IN_CONF)
                                             : null,
-                                    place == PlaceKind.PLACE_OUT 
+                                    place == PlaceKind.PLACE_OUT
                                             ? new C1ConfigurationTreeModel(
-                                                    c1exchangegen.C1ExchangeGen.OUT_CONF) 
+                                                    c1exchangegen.C1ExchangeGen.OUT_CONF)
                                             : null,
                                     null);
-                            log.info("Worker done {}", Thread.currentThread());
                         }
                     });
+                    log.info("Worker done {}", Thread.currentThread());
                 }
             }
-        }, "WRK:" + Long.toHexString(Math.round(Math.random() * 1000)).substring(1, 3));
+        }, "WRK:" + Long.toHexString(Math.round((Math.random() * 1000000) + 65535)).substring(1, 3));
         log.info("Starting worker {}", worker);
         worker.start();
         return worker;
