@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author psyriccio
  */
-public class ConfigurationForm extends javax.swing.JFrame {
+public class MainForm extends javax.swing.JFrame {
 
     public static Logger log = (Logger) LoggerFactory.getLogger("c1Ex.Form");
 
@@ -43,7 +43,7 @@ public class ConfigurationForm extends javax.swing.JFrame {
      *
      * @param logger
      */
-    public ConfigurationForm(Logger logger) throws UnsupportedEncodingException {
+    public MainForm(Logger logger) throws UnsupportedEncodingException {
         initComponents();
         log.setLevel(Level.ALL);
         log.setAdditive(true);

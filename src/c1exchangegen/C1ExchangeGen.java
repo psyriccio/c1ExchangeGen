@@ -11,7 +11,7 @@ import java.io.File;
 import javax.xml.bind.JAXBException;
 import c1exchangegen.codegen.CodeGenerator;
 import c1exchangegen.gui.C1ConfigurationTreeModel;
-import c1exchangegen.gui.ConfigurationForm;
+import c1exchangegen.gui.MainForm;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.util.StatusPrinter;
@@ -26,6 +26,7 @@ import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
 import org.slf4j.LoggerFactory;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *
@@ -33,7 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class C1ExchangeGen {
 
-    public static ConfigurationForm MAIN_FORM;
+    public static MainForm MAIN_FORM;
 
     public static Logger log = (Logger) getLogger("c1Ex");
 
@@ -133,7 +134,7 @@ public class C1ExchangeGen {
                     GraphiteSkin graphiteSkin = new GraphiteSkin();
                     SubstanceLookAndFeel.setSkin(graphiteSkin);
                     try {
-                        MAIN_FORM = new ConfigurationForm(log);
+                        MAIN_FORM = new MainForm(log);
                     } catch (UnsupportedEncodingException ex) {
                         log.error("Exception: ", ex);
                     }
