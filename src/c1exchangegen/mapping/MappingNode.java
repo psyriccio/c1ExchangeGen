@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("FieldMayBeFinal")
 public class MappingNode implements TreeNode {
 
+    private static MappingContext context = new MappingContext();
+    
     private static Logger log = (Logger) LoggerFactory.getLogger("c1ex.mapper");
 
     private MappingNode parent;
@@ -36,7 +38,7 @@ public class MappingNode implements TreeNode {
     private MetaObject outObject;
     private MappingMode mode;
     private String name;
-
+    
     public MappingNode(String name, String[] inObjFullNames, String[] outObjFullNames) {
 
         log.info("Creating root mapping node {}, for {} to {}", name, inObjFullNames, outObjFullNames);

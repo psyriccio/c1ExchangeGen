@@ -1,0 +1,20 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package c1exchangegen.mapping;
+
+import c1c.meta.generated.MetaObject;
+import java.util.List;
+
+/**
+ *
+ * @author psyriccio
+ */
+public class MappingContext {
+
+    private List<MetaObject> processed;
+    private List<MetaObject> dependencies;
+    
+}

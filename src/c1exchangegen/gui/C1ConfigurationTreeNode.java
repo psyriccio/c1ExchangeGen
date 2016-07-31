@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import javax.swing.tree.TreeNode;
 
@@ -24,11 +25,20 @@ import javax.swing.tree.TreeNode;
  */
 public class C1ConfigurationTreeNode implements TreeNode {
 
+    public enum NodeState {
+        Normal, Good, Warning, Error
+    }
+    
     private final C1ConfigurationTreeNode parent;
     private final List<C1ConfigurationTreeNode> childs;
     private final MetaObject obj;
+    private NodeState state;
 
     public C1ConfigurationTreeNode(C1ConfigurationTreeNode parent, MetaObject obj) {
+        
+        this.state = NodeState.Normal;
+        //this.state = (NodeState.values()[Math.round((float) (Math.random()*(NodeState.values().length-1)))]);
+        
         this.parent = parent;
         this.childs = new ArrayList<>();
         this.obj = obj;
@@ -80,9 +90,19 @@ public class C1ConfigurationTreeNode implements TreeNode {
     }
 
     public C1ConfigurationTreeNode(C1ConfigurationTreeNode parent) {
+        this.state = NodeState.Normal;
+        //this.state = (NodeState.values()[Math.round((float) (Math.random()*(NodeState.values().length-1)))]);
         this.parent = parent;
         this.childs = new ArrayList<>();
         this.obj = new MetaRef(parent.getObj());
+    }
+
+    public NodeState getState() {
+        return state;
+    }
+
+    public void setState(NodeState state) {
+        this.state = state;
     }
     
     @Override

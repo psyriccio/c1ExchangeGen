@@ -6,7 +6,6 @@
 package c1exchangegen.gui;
 
 import c1c.meta.generated.Conf;
-import c1c.meta.generated.MetaObject;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;

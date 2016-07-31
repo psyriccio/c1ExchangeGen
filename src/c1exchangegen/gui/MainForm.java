@@ -39,9 +39,13 @@ public class MainForm extends javax.swing.JFrame {
      * Creates new form ConfigurationForm
      *
      * @param logger
+     * @throws java.io.UnsupportedEncodingException
      */
     public MainForm(Logger logger) throws UnsupportedEncodingException {
         initComponents();
+        jConfTree1.setCellRenderer(new CustomSubstanceTreeCellRenderer());
+        jConfTree2.setCellRenderer(new CustomSubstanceTreeCellRenderer());
+        jTreeResult.setCellRenderer(new CustomSubstanceTreeCellRenderer());
         log.setLevel(Level.ALL);
         log.setAdditive(true);
 
@@ -152,7 +156,6 @@ public class MainForm extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("c1ExchangeGen");
-        setPreferredSize(new java.awt.Dimension(1600, 800));
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 formComponentResized(evt);
