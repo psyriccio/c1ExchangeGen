@@ -16,5 +16,26 @@ public class MappingContext {
 
     private List<MetaObject> processed;
     private List<MetaObject> dependencies;
+
+    public MappingContext() {
+    }
+
+    public List<MetaObject> getProcessed() {
+        return processed;
+    }
+
+    public List<MetaObject> getDependencies() {
+        return dependencies;
+    }
+    
+    
+    public int compareObjects(MetaObject objIn, MetaObject objOut) {
+
+        
+        
+        return 0;
+    }
+    
+    
     
 }
