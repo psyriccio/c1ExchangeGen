@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import javax.swing.tree.TreeNode;
 
@@ -45,14 +44,18 @@ public class C1ConfigurationTreeNode implements TreeNode {
                 
         if(obj instanceof Conf) {
         
+            List<MetaObject> sublistEnums = obj.asConf().getEna().stream().map((ena) -> (MetaObject) ena).collect(Collectors.toList());
             List<MetaObject> sublistCatalogs = obj.asConf().getCatalogs().stream().map((cat) -> (MetaObject) cat).collect(Collectors.toList());
             List<MetaObject> sublistDocuments = obj.asConf().getDocuments().stream().map((doc) -> (MetaObject) doc).collect(Collectors.toList());
+            MetaVertualDirectory ena = new MetaVertualDirectory("Перечисления", "Перечисления", obj, sublistEnums);
             MetaVertualDirectory catalogs = new MetaVertualDirectory("Справочники", "Справочники", obj, sublistCatalogs);
             MetaVertualDirectory documents = new MetaVertualDirectory("Документы", "Документы", obj, sublistDocuments);
             
+            C1ConfigurationTreeNode dirEna = new C1ConfigurationTreeNode(this, ena);
             C1ConfigurationTreeNode dirCat = new C1ConfigurationTreeNode(this, catalogs);
             C1ConfigurationTreeNode dirDoc = new C1ConfigurationTreeNode(this, documents);
             
+            childs.add(dirEna);
             childs.add(dirCat);
             childs.add(dirDoc);
         

@@ -43,6 +43,17 @@ public class MainForm extends javax.swing.JFrame {
      */
     public MainForm(Logger logger) throws UnsupportedEncodingException {
         initComponents();
+        jSeparator1.setVisible(false);
+        jSeparator2.setVisible(false);
+        jSeparator3.setVisible(false);
+        jSeparator4.setVisible(false);
+        jSeparator5.setVisible(false);
+        jSeparator6.setVisible(false);
+        jSeparator7.setVisible(false);
+        jSeparator8.setVisible(false);
+        jSeparator9.setVisible(false);
+        jSeparator10.setVisible(false);
+        jProgressBarMain.setVisible(false);
         jConfTree1.setCellRenderer(new CustomSubstanceTreeCellRenderer());
         jConfTree2.setCellRenderer(new CustomSubstanceTreeCellRenderer());
         jTreeResult.setCellRenderer(new CustomSubstanceTreeCellRenderer());
@@ -91,8 +102,13 @@ public class MainForm extends javax.swing.JFrame {
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         jfc.setMultiSelectionEnabled(false);
         if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            c1exchangegen.C1ExchangeGen.startLoadWorker(jfc.getSelectedFile(), place);
+            c1exchangegen.C1ExchangeGen.startLoadWorker(jfc.getSelectedFile(), place, (prc) -> {
+                if(prc > 0) jProgressBarMain.setVisible(true);
+                jProgressBarMain.setValue(prc);
+                if(prc == 100) jProgressBarMain.setVisible(false);
+            });
         }
+        jProgressBarMain.setValue(0);
     }
 
     protected void doLoadMapAction() {
@@ -142,6 +158,17 @@ public class MainForm extends javax.swing.JFrame {
         jBtnLoadIn = new javax.swing.JButton();
         jBtnLoadOut = new javax.swing.JButton();
         jBtnLoadMapping = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        jProgressBarMain = new javax.swing.JProgressBar();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
+        jSeparator9 = new javax.swing.JToolBar.Separator();
+        jSeparator10 = new javax.swing.JToolBar.Separator();
         jSP_Log_Main = new javax.swing.JSplitPane();
         jSP_InRes_Out = new javax.swing.JSplitPane();
         jSP_In_Result = new javax.swing.JSplitPane();
@@ -222,6 +249,17 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
         jToolBarMain.add(jBtnLoadMapping);
+        jToolBarMain.add(jSeparator1);
+        jToolBarMain.add(jSeparator2);
+        jToolBarMain.add(jSeparator3);
+        jToolBarMain.add(jSeparator4);
+        jToolBarMain.add(jSeparator5);
+        jToolBarMain.add(jProgressBarMain);
+        jToolBarMain.add(jSeparator6);
+        jToolBarMain.add(jSeparator7);
+        jToolBarMain.add(jSeparator8);
+        jToolBarMain.add(jSeparator9);
+        jToolBarMain.add(jSeparator10);
 
         jSP_Log_Main.setDividerLocation(600);
         jSP_Log_Main.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -281,7 +319,7 @@ public class MainForm extends javax.swing.JFrame {
             .addComponent(jSP_Log_Main, javax.swing.GroupLayout.DEFAULT_SIZE, 1596, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jToolBarMain, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jToolBarMain, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -337,6 +375,7 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JTree jConfTree1;
     private javax.swing.JTree jConfTree2;
     private javax.swing.JTextArea jLogArea;
+    private javax.swing.JProgressBar jProgressBarMain;
     private javax.swing.JSplitPane jSP_InRes_Out;
     private javax.swing.JSplitPane jSP_In_Result;
     private javax.swing.JSplitPane jSP_Log_Main;
@@ -344,6 +383,16 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator10;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
+    private javax.swing.JToolBar.Separator jSeparator9;
     private javax.swing.JToolBar jToolBarMain;
     private javax.swing.JTree jTreeResult;
     // End of variables declaration//GEN-END:variables

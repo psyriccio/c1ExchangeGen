@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import javax.swing.JProgressBar;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 import org.pushingpixels.substance.api.skin.GraphiteSkin;
@@ -55,7 +58,7 @@ public class C1ExchangeGen {
         }
     }
 
-    public static Thread startLoadWorker(File fl, PlaceKind place) {
+    public static Thread startLoadWorker(File fl, PlaceKind place, Consumer<Integer> prcConsumer) {
         if (place != PlaceKind.PLACE_IN && place != PlaceKind.PLACE_OUT) {
             return null;
         }
@@ -66,9 +69,31 @@ public class C1ExchangeGen {
                 try {
                     log.info("Loading model from {}", fl);
                     if (place == PlaceKind.PLACE_IN) {
-                        c1exchangegen.C1ExchangeGen.IN_CONF = C1.loadConfiguration(fl).orElse(null);
+                        c1exchangegen.C1ExchangeGen.IN_CONF = C1.loadConfiguration(fl, (prc) -> {
+                            try {
+                                java.awt.EventQueue.invokeAndWait(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        prcConsumer.accept(prc);
+                                    }
+                                });
+                            } catch (InterruptedException | InvocationTargetException ex) {
+                                log.error("Exception: ", ex);
+                            }
+                        }).orElse(null);
                     } else {
-                        c1exchangegen.C1ExchangeGen.OUT_CONF = C1.loadConfiguration(fl).orElse(null);
+                        c1exchangegen.C1ExchangeGen.OUT_CONF = C1.loadConfiguration(fl, (prc) -> {
+                            try {
+                                java.awt.EventQueue.invokeAndWait(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        prcConsumer.accept(prc);
+                                    }
+                                });
+                            } catch (InterruptedException | InvocationTargetException ex) {
+                                log.error("Exception: ", ex);
+                            }
+                        }).orElse(null);
                     }
                 } catch (JAXBException ex) {
                     log.error("Exception: ", ex);
