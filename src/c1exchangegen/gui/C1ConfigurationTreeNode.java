@@ -11,6 +11,7 @@ import c1c.meta.generated.Document;
 import c1c.meta.generated.MetaObject;
 import c1c.meta.generated.impl.MetaRef;
 import c1c.meta.generated.impl.MetaVertualDirectory;
+import c1exchangegen.mapping.NodeStateContainer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -22,12 +23,8 @@ import javax.swing.tree.TreeNode;
  *
  * @author psyriccio
  */
-public class C1ConfigurationTreeNode implements TreeNode {
+public class C1ConfigurationTreeNode implements TreeNode, NodeStateContainer {
 
-    public enum NodeState {
-        Normal, Good, Warning, Error
-    }
-    
     private final C1ConfigurationTreeNode parent;
     private final List<C1ConfigurationTreeNode> childs;
     private final MetaObject obj;
@@ -100,10 +97,12 @@ public class C1ConfigurationTreeNode implements TreeNode {
         this.obj = new MetaRef(parent.getObj());
     }
 
+    @Override
     public NodeState getState() {
         return state;
     }
 
+    @Override
     public void setState(NodeState state) {
         this.state = state;
     }

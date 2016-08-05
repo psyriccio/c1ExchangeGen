@@ -5,12 +5,12 @@
  */
 package c1exchangegen.gui;
 
+import c1exchangegen.mapping.MappingNode;
+import c1exchangegen.mapping.NodeStateContainer;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTree;
-import javax.swing.border.LineBorder;
 import javax.swing.tree.TreeCellRenderer;
 import org.pushingpixels.substance.api.renderers.SubstanceDefaultTreeCellRenderer;
 
@@ -19,7 +19,7 @@ import org.pushingpixels.substance.api.renderers.SubstanceDefaultTreeCellRendere
  * @author psyriccio
  */
 public class CustomSubstanceTreeCellRenderer implements TreeCellRenderer {
-    
+
     private final int stsClAdd = 20;
     private final SubstanceDefaultTreeCellRenderer defRenderer;
 
@@ -27,42 +27,52 @@ public class CustomSubstanceTreeCellRenderer implements TreeCellRenderer {
         defRenderer = new SubstanceDefaultTreeCellRenderer();
     }
 
+    private int checkByteBounds(int x) {
+        if (x < 0) {
+            return 0;
+        }
+        if (x > 255) {
+            return 255;
+        }
+        return x;
+    }
+
+    private Color addColorComponent(Color cl, int red, int green, int blue, int alpha) {
+        int rred = checkByteBounds(cl.getRed() + red);
+        int rgreen = checkByteBounds(cl.getGreen() + green);
+        int rblue = checkByteBounds(cl.getBlue() + blue);
+        int raplha = checkByteBounds(cl.getAlpha() + alpha);
+        return new Color(rred, rgreen, rblue, raplha);
+    }
+
+    private Color applyNodeStateToColor(Color cl, MappingNode.NodeState state) {
+
+        switch (state) {
+            case Normal:
+                return cl;
+            case Good:
+                return addColorComponent(cl, -stsClAdd, stsClAdd, -stsClAdd, 0);
+            case Warning:
+                return addColorComponent(cl, stsClAdd, stsClAdd, -stsClAdd, 0);
+                //return addColorComponent(cl, stsClAdd, -stsClAdd, -stsClAdd, 0);
+            case Error:
+            case Inactive:
+                return addColorComponent(cl, -stsClAdd, -stsClAdd, -stsClAdd, stsClAdd*2);
+        }
+
+        return cl;
+
+    }
+
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         Component defComp = defRenderer.getTreeCellRendererComponent(tree, value, leaf, expanded, leaf, row, hasFocus);
         JLabel label = (JLabel) defComp;
-        if(value instanceof C1ConfigurationTreeNode) {
-            C1ConfigurationTreeNode node = (C1ConfigurationTreeNode) value;
-            label.setToolTipText(node.getObj().getFullName());
-            if(node.getState() == C1ConfigurationTreeNode.NodeState.Good) {
-                Color bg = label.getBackground();
-                label.setBackground(
-                        new Color(
-                                bg.getRed() >= stsClAdd ? bg.getRed() - stsClAdd : 0, 
-                                bg.getGreen() <= 255-stsClAdd ? bg.getGreen() + stsClAdd : 255, 
-                                bg.getBlue() >= stsClAdd ? bg.getBlue() - stsClAdd : 0, 
-                                bg.getAlpha()));
-            }
-            if(node.getState() == C1ConfigurationTreeNode.NodeState.Warning) {
-                Color bg = label.getBackground();
-                label.setBackground(
-                        new Color(
-                                bg.getRed() <= 255-stsClAdd ? bg.getRed() + stsClAdd : 255, 
-                                bg.getGreen() <= 255-stsClAdd ? bg.getGreen() + stsClAdd : 255, 
-                                bg.getBlue() >= stsClAdd ? bg.getBlue() - stsClAdd : 0, 
-                                bg.getAlpha()));
-            }
-            if(node.getState() == C1ConfigurationTreeNode.NodeState.Error) {
-                Color bg = label.getBackground();
-                label.setBackground(
-                        new Color(
-                                bg.getRed() <= 255-stsClAdd ? bg.getRed() + stsClAdd : 255, 
-                                bg.getGreen() >= stsClAdd ? bg.getGreen() - stsClAdd : 0, 
-                                bg.getBlue() >= stsClAdd ? bg.getBlue() - stsClAdd : 0, 
-                                bg.getAlpha()));
-            }
+        if (value instanceof NodeStateContainer) {
+            NodeStateContainer node = (NodeStateContainer) value;
+            label.setBackground(applyNodeStateToColor(label.getBackground(), node.getState()));
         }
         return label;
     }
-    
+
 }

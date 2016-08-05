@@ -18,23 +18,17 @@ import javax.swing.tree.TreeNode;
  * @author psyriccio
  */
 @SuppressWarnings("FieldMayBeFinal")
-public class MappingInfoNode implements TreeNode {
+public class MappingInfoNode implements TreeNode, NodeStateContainer {
 
     private TreeNode parent;
     private List<MappingInfoNode> childs;
     private String header;
     private Object data;
     private String dataDescription;
+    private MappingNode.NodeState state;
 
-    public MappingInfoNode(TreeNode parent, String header, Object data) {
-        this.parent = parent;
-        this.childs = null;
-        this.header = header;
-        this.data = data;
-        this.dataDescription = "";
-
+    private void init() {
         if (data instanceof HashMap) {
-            this.childs = new ArrayList<>();
             HashMap<Object, Object> dt = (HashMap<Object, Object>) data;
             dt.keySet().forEach((key) -> {
                 Object obj = dt.get(key);
@@ -43,9 +37,8 @@ public class MappingInfoNode implements TreeNode {
             dataDescription = "HashMap";
             return;
         }
-        
-        if(data instanceof List) {
-            this.childs = new ArrayList<>();
+
+        if (data instanceof List) {
             List<Object> dt = (List<Object>) data;
             int k = 0;
             for (Object obj : dt) {
@@ -54,11 +47,10 @@ public class MappingInfoNode implements TreeNode {
             }
             dataDescription = "List";
             return;
-            
+
         }
 
         if (data.getClass().isArray()) {
-            this.childs = new ArrayList<>();
             Object[] dt = (Object[]) data;
             int k = 0;
             for (Object obj : dt) {
@@ -71,7 +63,6 @@ public class MappingInfoNode implements TreeNode {
 
         for (Class intrf : data.getClass().getInterfaces()) {
             if (intrf.equals(Iterable.class)) {
-                this.childs = new ArrayList<>();
                 Iterable<Object> iterObj = (Iterable<Object>) data;
                 int k = 0;
                 for (Object obj : iterObj) {
@@ -89,9 +80,43 @@ public class MappingInfoNode implements TreeNode {
         } catch (Exception ex) {
             // do nothing
         }
-        
+
         dataDescription = data.toString() + (fullName.isEmpty() ? "" : " :// " + fullName);
 
+    }
+
+    public MappingInfoNode(TreeNode parent, String header, Object data, MappingNode.NodeState state) {
+        this.parent = parent;
+        this.childs = null;
+        this.header = header;
+        this.data = data;
+        this.dataDescription = "";
+        this.state = state;
+        this.childs = new ArrayList<>();
+        init();
+    }
+
+    public MappingInfoNode(TreeNode parent, String header, Object data) {
+        this.parent = parent;
+        this.childs = null;
+        this.header = header;
+        this.data = data;
+        this.dataDescription = "";
+        this.childs = new ArrayList<>();
+        if(parent instanceof MappingInfoNode) {
+            this.state = ((MappingInfoNode) parent).getState();
+        }
+        init();
+    }
+
+    @Override
+    public MappingNode.NodeState getState() {
+        return state;
+    }
+
+    @Override
+    public void setState(MappingNode.NodeState state) {
+        this.state = state;
     }
 
     @Override

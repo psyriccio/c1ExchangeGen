@@ -7,6 +7,7 @@ package c1exchangegen.mapping;
 
 import c1c.meta.C1;
 import c1c.meta.generated.MetaObject;
+import c1c.meta.generated.MetaObjectClass;
 import c1c.meta.generated.impl.MetaObjectImpl;
 import c1exchangegen.C1ExchangeGen;
 import ch.qos.logback.classic.Logger;
@@ -25,10 +26,10 @@ import org.slf4j.LoggerFactory;
  * @author psyriccio
  */
 @SuppressWarnings("FieldMayBeFinal")
-public class MappingNode implements TreeNode {
+public class MappingNode implements TreeNode, NodeStateContainer {
 
     private static MappingContext context = new MappingContext();
-    
+
     private static Logger log = (Logger) LoggerFactory.getLogger("c1ex.mapper");
 
     private MappingNode parent;
@@ -38,7 +39,8 @@ public class MappingNode implements TreeNode {
     private MetaObject outObject;
     private MappingMode mode;
     private String name;
-    
+    private NodeState state;
+
     public MappingNode(String name, String[] inObjFullNames, String[] outObjFullNames) {
 
         log.info("Creating root mapping node {}, for {} to {}", name, inObjFullNames, outObjFullNames);
@@ -73,8 +75,24 @@ public class MappingNode implements TreeNode {
         this.outObject = outObject;
         this.mode = MappingMode.NULL;
 
+        this.state = inObject.compareTo(outObject).isEquals() ? NodeState.Good : NodeState.Error;
+
+        if (this.state == NodeState.Error) {
+            MappingNode curpar = parent;
+            while (curpar != null) {
+                curpar.setState(NodeState.Warning);
+                curpar = (MappingNode) curpar.getParent();
+            }
+
+        }
+        if (this.state == NodeState.Good) {
+            if (parent.getState() == NodeState.Normal) {
+                parent.setState(NodeState.Good);
+            }
+        }
+
         log.info("Processing {} to {}", inObject.getFullName(), outObject.getFullName());
-                
+
         infoChilds.add(new MappingInfoNode(this, "to", this.outObject));
 
         List<MetaObject> outCh = new ArrayList<>(this.outObject.getChildrens());
@@ -83,28 +101,61 @@ public class MappingNode implements TreeNode {
 
         inObject.getChildrens().forEach((in) -> {
             log.info("Processing {} child {} and adding subnodes", inObject.getName(), in.getName());
-            outCh.forEach((out) -> {
-                if (!remOutCh.contains(out) && out.getName().equals(in.getName())) {
-                    log.info("Find map for name {} -> {}", in.toString(), out.toString());
-                    remOutCh.add(out);
-                    childs.add(new MappingNode(this, in, out));
-                }
-            });
-            inCh.add(in);
+            if (in.getObjClass() == MetaObjectClass.TypeDescription) {
+                MetaObject out = outObject.getChildrens().stream()
+                        .findFirst().get().asTypeDescription();
+                childs.add(new MappingNode(this, in, out));
+                remOutCh.add(out);
+            } else {
+                inCh.add(in);
+                outCh.forEach((out) -> {
+                    if (!remOutCh.contains(out) && out.getName().equals(in.getName())) {
+                        log.info("Find map for name {} -> {}", in.toString(), out.toString());
+                        remOutCh.add(out);
+                        childs.add(new MappingNode(this, in, out));
+                        inCh.remove(in);
+                    }
+                });
+            }
         });
 
         outCh.removeAll(remOutCh);
-        
+
         log.info("IN-object {} has {} unmapped sub-nodes", inObject.getName(), inCh.isEmpty() ? "no" : inCh.size());
         log.info("OUT-object {} has {} unmapped sub-nodes", outObject.getName(), outCh.isEmpty() ? "no" : outCh.size());
 
-        if(!inCh.isEmpty() || !outCh.isEmpty()) {
+        if (!inCh.isEmpty() || !outCh.isEmpty()) {
             HashMap<String, Object> unmapped = new HashMap<>();
             unmapped.put("IN", inCh.isEmpty() ? "" : inCh);
             unmapped.put("OUT", outCh.isEmpty() ? "" : outCh);
-            
-            infoChilds.add(new MappingInfoNode(this, "!UNMAPPED", unmapped));
+
+            infoChilds.add(new MappingInfoNode(this, "!UNMAPPED", unmapped, NodeState.Error));
+            this.setState(NodeState.Warning);
         }
+
+        this.infoChilds.forEach((inf) -> {
+            if (inf.getState() != NodeState.Error) {
+                inf.setState(this.state);
+                if (inf.children() != null) {
+                    Collections.list(inf.children()).forEach((ch) -> {
+                        if (((MappingInfoNode) ch).getState() != NodeState.Error) {
+                            ((MappingInfoNode) ch).setState(this.state);
+                        }
+                    });
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public NodeState getState() {
+        return state;
+    }
+
+    @Override
+    public void setState(NodeState state) {
+        this.state = state;
     }
 
     @Override
