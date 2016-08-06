@@ -26,8 +26,7 @@
                                 <xs:complexType>
                                     <xs:attribute name="object" type="xs:string"/>
                                     <xs:attribute name="mode" type="xs:string"/>
-                                    <xs:attribute name="in" type="xs:string"/>
-                                    <xs:attribute name="out" type="xs:string"/>
+                                    <xs:attribute name="dst" type="xs:string"/>
                                 </xs:complexType>
                             </xs:element>
                         </xs:choice>

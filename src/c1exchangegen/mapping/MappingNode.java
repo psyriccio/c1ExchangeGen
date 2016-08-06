@@ -10,6 +10,7 @@ import c1c.meta.generated.MetaObject;
 import c1c.meta.generated.MetaObjectClass;
 import c1c.meta.generated.impl.MetaObjectImpl;
 import c1exchangegen.C1ExchangeGen;
+import c1exchangegen.generated.Mapping.Map.Rule;
 import ch.qos.logback.classic.Logger;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class MappingNode implements TreeNode, NodeStateContainer {
     private String name;
     private NodeState state;
 
-    public MappingNode(String name, String[] inObjFullNames, String[] outObjFullNames) {
+    public MappingNode(String name, String[] inObjFullNames, String[] outObjFullNames, List[] rulesArray) {
 
         log.info("Creating root mapping node {}, for {} to {}", name, inObjFullNames, outObjFullNames);
 
@@ -55,12 +56,16 @@ public class MappingNode implements TreeNode, NodeStateContainer {
 
         for (int k = 0; k < inObjFullNames.length; k++) {
             log.info("Map {} to {}", inObjFullNames[k], outObjFullNames[k]);
-            childs.add(
-                    new MappingNode(
-                            this,
-                            C1.findObjFullName(C1ExchangeGen.IN_CONF, inObjFullNames[k]).get(),
-                            C1.findObjFullName(C1ExchangeGen.OUT_CONF, outObjFullNames[k]).get()
-                    ));
+            List<Rule> rules = rulesArray[k];
+            final MetaObject inObj = C1.findObjFullName(C1ExchangeGen.IN_CONF, inObjFullNames[k]).get();
+            final MetaObject outObj = C1.findObjFullName(C1ExchangeGen.OUT_CONF, outObjFullNames[k]).get();
+            rules.forEach((rule) -> {
+                if (rule.getMode().equals("SKIP")) {
+                    inObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
+                    outObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
+                }
+            });
+            childs.add(new MappingNode(this, inObj, outObj));
         }
 
     }
@@ -74,6 +79,12 @@ public class MappingNode implements TreeNode, NodeStateContainer {
         this.inObject = inObject;
         this.outObject = outObject;
         this.mode = MappingMode.NULL;
+
+        if (inObject.isMarkedBy("SKIP")) {
+            this.state = NodeState.Inactive;
+            infoChilds.add(new MappingInfoNode(this, "!SKIP", inObject.isMarkedBy("SKIP"), NodeState.Inactive));
+            return;
+        }
 
         this.state = inObject.compareTo(outObject).isEquals() ? NodeState.Good : NodeState.Error;
 
@@ -101,7 +112,9 @@ public class MappingNode implements TreeNode, NodeStateContainer {
 
         inObject.getChildrens().forEach((in) -> {
             log.info("Processing {} child {} and adding subnodes", inObject.getName(), in.getName());
-            if (in.getObjClass() == MetaObjectClass.TypeDescription) {
+            if (in.isMarkedBy("SKIP")) {
+                childs.add(new MappingNode(this, in, in.getEMPTY()));
+            } else if (in.getObjClass() == MetaObjectClass.TypeDescription) {
                 MetaObject out = outObject.getChildrens().stream()
                         .findFirst().get().asTypeDescription();
                 childs.add(new MappingNode(this, in, out));

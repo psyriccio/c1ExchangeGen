@@ -6,6 +6,7 @@
 package c1exchangegen.gui;
 
 import c1exchangegen.C1ExchangeGen;
+import c1exchangegen.Mapping.Rule;
 import c1exchangegen.PlaceKind;
 import c1exchangegen.generated.Mapping;
 import c1exchangegen.generated.Mapping.Map;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.TreeModel;
@@ -132,17 +134,19 @@ public class MainForm extends javax.swing.JFrame {
                 Mapping maps = (Mapping) jaxbContext.createUnmarshaller().unmarshal(jfc.getSelectedFile());
                 String[] in = new String[maps.getMaps().size()];
                 String[] out = new String[maps.getMaps().size()];
+                List[] rules = new List[maps.getMaps().size()];
                 int k = 0;
                 for (Map map : maps.getMaps()) {
                     in[k] = map.getIn();
                     out[k] = map.getOut();
+                    rules[k] = map.getRules();
                     k++;
                 }
-
+                
                 log.info("Processing mapping");
                 jTreeResult.setModel(
                         new MappingTreeModel(
-                                new MappingNode("Test", in, out)));
+                                new MappingNode("Test", in, out, rules)));
 
             } catch (JAXBException ex) {
                 log.error("Exeption: ", ex);

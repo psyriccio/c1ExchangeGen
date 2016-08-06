@@ -45,22 +45,41 @@ public class CustomSubstanceTreeCellRenderer implements TreeCellRenderer {
         return new Color(rred, rgreen, rblue, raplha);
     }
 
-    private Color applyNodeStateToColor(Color cl, MappingNode.NodeState state) {
-
+    private void applyNodeStateToLabel(JLabel label, MappingNode.NodeState state) {
+        
         switch (state) {
             case Normal:
-                return cl;
+                break;
             case Good:
-                return addColorComponent(cl, -stsClAdd, stsClAdd, -stsClAdd, 0);
+                label.setBackground(
+                        addColorComponent(
+                                label.getBackground(), 
+                                -stsClAdd, stsClAdd, -stsClAdd, 0));
+                break;
             case Warning:
-                return addColorComponent(cl, stsClAdd, stsClAdd, -stsClAdd, 0);
-                //return addColorComponent(cl, stsClAdd, -stsClAdd, -stsClAdd, 0);
+                label.setBackground(
+                        addColorComponent(
+                                label.getBackground(), 
+                                stsClAdd, stsClAdd, -stsClAdd, 0));
+                break;
             case Error:
+                label.setBackground(
+                        addColorComponent(
+                                label.getBackground(), 
+                                stsClAdd, -stsClAdd, -stsClAdd, 0));
+                break;
+            //case Error:
             case Inactive:
-                return addColorComponent(cl, -stsClAdd, -stsClAdd, -stsClAdd, stsClAdd*2);
+                label.setBackground(
+                        addColorComponent(
+                                label.getBackground(), 
+                                (stsClAdd), (stsClAdd), (stsClAdd), 0));
+                label.setForeground(
+                        addColorComponent(
+                                label.getForeground(),
+                                -(stsClAdd*2), -(stsClAdd*2), -(stsClAdd*2), 0));
+                break;
         }
-
-        return cl;
 
     }
 
@@ -70,7 +89,7 @@ public class CustomSubstanceTreeCellRenderer implements TreeCellRenderer {
         JLabel label = (JLabel) defComp;
         if (value instanceof NodeStateContainer) {
             NodeStateContainer node = (NodeStateContainer) value;
-            label.setBackground(applyNodeStateToColor(label.getBackground(), node.getState()));
+            applyNodeStateToLabel(label, node.getState());
         }
         return label;
     }
