@@ -64,6 +64,15 @@ public class MappingNode implements TreeNode, NodeStateContainer {
                     inObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                     outObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                 }
+                if(rule.getMode().equals("REMAP")) {
+                    MetaObject from = inObj.select(rule.getObject()).getSelection().stream().findFirst().get();
+                    MetaObject dst = inObj.selectVD(rule.getDst()).getSelection().stream().findFirst().get();
+                    MetaObject where = dst.getParent();
+                    where.getChildrens().remove(dst);
+                    dst.setParent(null);
+                    where.getChildrens().add(from);
+                    from.setParent(where);
+                }
             });
             childs.add(new MappingNode(this, inObj, outObj));
         }
@@ -133,6 +142,8 @@ public class MappingNode implements TreeNode, NodeStateContainer {
         });
 
         outCh.removeAll(remOutCh);
+        List<MetaObject> outSkp = outCh.stream().filter((itm) -> itm.isMarkedBy("SKIP")).collect(Collectors.toList());
+        outCh.removeAll(outSkp);
 
         log.info("IN-object {} has {} unmapped sub-nodes", inObject.getName(), inCh.isEmpty() ? "no" : inCh.size());
         log.info("OUT-object {} has {} unmapped sub-nodes", outObject.getName(), outCh.isEmpty() ? "no" : outCh.size());
