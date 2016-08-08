@@ -165,7 +165,7 @@ public class MappingNode implements TreeNode, NodeStateContainer {
                         (tRef) -> (tRef.getObjClass() == MetaObjectClass.TypeDescription 
                                 ? tRef.asTypeDescription().getTypes().stream()
                                 : tRef.getObjClass() == MetaObjectClass.Type
-                ? Stream.of(tRef.asType()) : Stream.of(tRef)))
+                ? Stream.of(tRef.asType()) : Stream.empty()))
                 .filter((tRef) -> tRef.asType().getName().contains("."))
                 .filter(
                         (tRef) -> MappingContext.MAPPING.getMaps().stream()
