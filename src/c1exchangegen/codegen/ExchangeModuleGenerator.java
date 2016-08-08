@@ -43,7 +43,7 @@ public class ExchangeModuleGenerator {
                     "Возврат \"~~~@REF:\" + Строка(ТипЗнч(СсылкаЗнч)) + \"/\" + Строка(СсылкаЗнч.УникальныйИдентификатор());",
                     ""
                 }
-        ) + "/n";
+        ) + "\n";
         
         MappingNode root = (MappingNode) model.getRoot();
 
