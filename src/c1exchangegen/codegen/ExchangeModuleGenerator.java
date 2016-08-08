@@ -5,6 +5,7 @@
  */
 package c1exchangegen.codegen;
 
+import c1c.meta.generated.MetaObjectClass;
 import c1exchangegen.mapping.MappingNode;
 import c1exchangegen.mapping.MappingTreeModel;
 import c1exchangegen.mapping.NodeStateContainer;
@@ -276,8 +277,16 @@ public class ExchangeModuleGenerator {
                 Collections.list(child.children()).stream().forEach((subch) -> {
                     if (subch instanceof MappingNode) {
                         MappingNode subchild = (MappingNode) subch;
-                        if (subchild.getState() == NodeStateContainer.NodeState.Good) {
-                            struct.put(subchild.getInObject().getName(), null);
+                        if(subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
+                            HashMap<String, Object> tabStruct = new HashMap<>();
+                            subchild.getInObject().asTabularSection().getProperties().forEach((tabPr) -> {
+                                tabStruct.put(tabPr.getName(), null);
+                            });
+                            struct.put(subchild.getInObject().asTabularSection().getName(), tabStruct);
+                        } else {
+                            if (subchild.getState() == NodeStateContainer.NodeState.Good) {
+                                struct.put(subchild.getInObject().getName(), null);
+                            }
                         }
                     }
                 });
