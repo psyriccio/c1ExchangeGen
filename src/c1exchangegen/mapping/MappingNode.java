@@ -19,6 +19,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.tree.TreeNode;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public class MappingNode implements TreeNode, NodeStateContainer {
                     inObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                     outObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                 }
-                if(rule.getMode().equals("REMAP")) {
+                if (rule.getMode().equals("REMAP")) {
                     MetaObject from = inObj.select(rule.getObject()).getSelection().stream().findFirst().get();
                     MetaObject dst = inObj.selectVD(rule.getDst()).getSelection().stream().findFirst().get();
                     MetaObject where = dst.getParent();
@@ -157,6 +158,48 @@ public class MappingNode implements TreeNode, NodeStateContainer {
             this.setState(NodeState.Warning);
         }
 
+        List<String> alrNeeded = new ArrayList<>();
+        
+        this.inObject.getTypeReferences().stream()
+                .flatMap(
+                        (tRef) -> (tRef.getObjClass() == MetaObjectClass.TypeDescription 
+                                ? tRef.asTypeDescription().getTypes().stream()
+                                : tRef.getObjClass() == MetaObjectClass.Type
+                ? Stream.of(tRef.asType()) : Stream.empty()))
+                .filter((tRef) -> tRef.asType().getName().contains("."))
+                .filter(
+                        (tRef) -> MappingContext.MAPPING.getMaps().stream()
+                        .noneMatch(
+                                (map) -> map.getIn().equals(tRef.getFullName()))
+                ).forEach((tRef) -> {
+                    String typeName = tRef.asType().getName();
+                    if(!alrNeeded.contains(typeName)) {
+                        infoChilds.add(
+                                new MappingInfoNode(this, "!NEED", typeName, NodeState.Error));
+                        alrNeeded.add(typeName);
+                    }
+                });
+
+        this.outObject.getTypeReferences().stream()
+                .flatMap(
+                        (tRef) -> (tRef.getObjClass() == MetaObjectClass.TypeDescription 
+                                ? tRef.asTypeDescription().getTypes().stream()
+                                : tRef.getObjClass() == MetaObjectClass.Type
+                ? Stream.of(tRef.asType()) : Stream.of(tRef)))
+                .filter((tRef) -> tRef.asType().getName().contains("."))
+                .filter(
+                        (tRef) -> MappingContext.MAPPING.getMaps().stream()
+                        .noneMatch(
+                                (map) -> map.getOut().equals(tRef.getFullName()))
+                ).forEach((tRef) -> {
+                    String typeName = tRef.asType().getName();
+                    if(!alrNeeded.contains(typeName)) {
+                        infoChilds.add(
+                                new MappingInfoNode(this, "!NEED", typeName, NodeState.Error));
+                        alrNeeded.add(typeName);
+                    }
+                });
+
         this.infoChilds.forEach((inf) -> {
             if (inf.getState() != NodeState.Error) {
                 inf.setState(this.state);
@@ -245,5 +288,5 @@ public class MappingNode implements TreeNode, NodeStateContainer {
     public MappingMode getMode() {
         return mode;
     }
-        
+
 }

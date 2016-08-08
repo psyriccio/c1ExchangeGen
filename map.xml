@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <c1ex:Mapping name="test-mapping" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:c1ex='c1ex' xsi:schemaLocation='c1ex ExchangeMapping.xsd'>
 
+  <map in="Справочник.Организации" out="Справочник.Организации">
+  </map>
+
+  <map in="Справочник.Валюты" out="Справочник.Валюты">
+  </map>
+
   <map in="Справочник.Номенклатура" out="Справочник.Номенклатура">
 	   <rule object="ЕдиницаХраненияОстатков" mode="SKIP" />
      <rule object="НаправлениеСписанияВыпущеннойПродукции" mode="SKIP" />
@@ -55,8 +61,14 @@
     <rule object="Пол" mode="SKIP" />
   </map>
 
-<map in="Справочник.БанковскиеСчета" out="Справочник.БанковскиеСчета">
-  <rule object="ОтдельныйСчетГОЗ" mode="SKIP" />
-</map>
+  <map in="Справочник.Банки" out="Справочник.Банки">
+  </map>
+
+  <map in="Справочник.БанковскиеСчета" out="Справочник.БанковскиеСчета">
+    <rule object="ОтдельныйСчетГОЗ" mode="SKIP" />
+  </map>
+
+  <!--map in="Документ.РеализацияТоваровУслуг" out="Документ.РеализацияТоваровУслуг">
+  </map-->
 
 </c1ex:Mapping>

@@ -6,6 +6,7 @@
 package c1exchangegen.mapping;
 
 import c1c.meta.generated.MetaObject;
+import c1exchangegen.generated.Mapping;
 import java.util.List;
 
 /**
@@ -14,6 +15,8 @@ import java.util.List;
  */
 public class MappingContext {
 
+    public static Mapping MAPPING;
+    
     private List<MetaObject> processed;
     private List<MetaObject> dependencies;
 
