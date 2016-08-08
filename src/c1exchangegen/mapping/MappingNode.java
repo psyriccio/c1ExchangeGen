@@ -158,23 +158,25 @@ public class MappingNode implements TreeNode, NodeStateContainer {
         }
 
         this.inObject.getTypeReferences().stream()
+                .filter((tRef) -> tRef.asType().getName().contains("."))
                 .filter(
                         (tRef) -> MappingContext.MAPPING.getMaps().stream()
                         .noneMatch(
                                 (map) -> map.getIn().equals(tRef.getFullName()))
                 ).forEach((tRef) -> {
                     infoChilds.add(
-                            new MappingInfoNode(this, "!NEED", tRef, NodeState.Error));
+                            new MappingInfoNode(this, "!NEED", tRef.asType().getName(), NodeState.Error));
                 });
 
         this.outObject.getTypeReferences().stream()
+                .filter((tRef) -> tRef.asType().getName().contains("."))
                 .filter(
                         (tRef) -> MappingContext.MAPPING.getMaps().stream()
                         .noneMatch(
                                 (map) -> map.getOut().equals(tRef.getFullName()))
                 ).forEach((tRef) -> {
                     infoChilds.add(
-                            new MappingInfoNode(this, "!NEED", tRef, NodeState.Error));
+                            new MappingInfoNode(this, "!NEED", tRef.asType().getName(), NodeState.Error));
                 });
 
         this.infoChilds.forEach((inf) -> {
