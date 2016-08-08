@@ -1,15 +1,29 @@
 buildscript {
-  repositories { jcenter() }
+  repositories {
+    jcenter()
+    maven {
+        url "https://maven.eveoh.nl/content/repositories/releases"
+    }
+  }
+
   dependencies {
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    classpath "nl.eveoh:gradle-aspectj:1.6"
   }
+
 }
 
 plugins {
   id "com.github.johnrengelman.shadow" version "1.2.3"
 }
 
+project.ext {
+    aspectjVersion = '1.8.9'
+}
+
 apply plugin: 'java'
+apply plugin: 'aspectj'
+apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 repositories {
     mavenCentral()
@@ -22,6 +36,7 @@ sourceCompatibility = 1.8
 version = 'latest-SNAPSHOT'
 
 ext.mainClass = 'c1exchangegen.C1ExchangeGen'
+mainClassName = 'c1exchangegen.C1ExchangeGen'
 jar {
     manifest {
         attributes 'Implementation-Title': 'c1ExchangeGen',

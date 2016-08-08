@@ -5,7 +5,6 @@
  */
 package c1exchangegen.codegen;
 
-import freemarker.core.OutputFormat;
 import freemarker.core.ParseException;
 import freemarker.core.PlainTextOutputFormat;
 import freemarker.template.Configuration;

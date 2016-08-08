@@ -234,4 +234,16 @@ public class MappingNode implements TreeNode, NodeStateContainer {
                 .collect(Collectors.toList()));
     }
 
+    public MetaObject getInObject() {
+        return inObject;
+    }
+
+    public MetaObject getOutObject() {
+        return outObject;
+    }
+
+    public MappingMode getMode() {
+        return mode;
+    }
+        
 }
