@@ -12,6 +12,7 @@ import c1exchangegen.codegen.ExchangeModuleGenerator;
 import c1exchangegen.generated.Mapping;
 import c1exchangegen.generated.Mapping.Map;
 import c1exchangegen.generated.impl.JAXBContextFactory;
+import c1exchangegen.mapping.MappingContext;
 import c1exchangegen.mapping.MappingNode;
 import c1exchangegen.mapping.MappingTreeModel;
 import ch.qos.logback.classic.Level;
@@ -138,6 +139,7 @@ public class MainForm extends javax.swing.JFrame {
                                 c1exchangegen.generated.Mapping.class.getClassLoader(),
                                 new HashMap());
                 Mapping maps = (Mapping) jaxbContext.createUnmarshaller().unmarshal(jfc.getSelectedFile());
+                MappingContext.MAPPING = maps;
                 String[] in = new String[maps.getMaps().size()];
                 String[] out = new String[maps.getMaps().size()];
                 List[] rules = new List[maps.getMaps().size()];

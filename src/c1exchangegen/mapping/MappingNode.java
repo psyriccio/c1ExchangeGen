@@ -64,7 +64,7 @@ public class MappingNode implements TreeNode, NodeStateContainer {
                     inObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                     outObj.select(rule.getObject()).getSelection().forEach((MetaObject sel) -> sel.mark("SKIP"));
                 }
-                if(rule.getMode().equals("REMAP")) {
+                if (rule.getMode().equals("REMAP")) {
                     MetaObject from = inObj.select(rule.getObject()).getSelection().stream().findFirst().get();
                     MetaObject dst = inObj.selectVD(rule.getDst()).getSelection().stream().findFirst().get();
                     MetaObject where = dst.getParent();
@@ -157,6 +157,26 @@ public class MappingNode implements TreeNode, NodeStateContainer {
             this.setState(NodeState.Warning);
         }
 
+        this.inObject.getTypeReferences().stream()
+                .filter(
+                        (tRef) -> MappingContext.MAPPING.getMaps().stream()
+                        .noneMatch(
+                                (map) -> map.getIn().equals(tRef.getFullName()))
+                ).forEach((tRef) -> {
+                    infoChilds.add(
+                            new MappingInfoNode(this, "!NEED", tRef, NodeState.Error));
+                });
+
+        this.outObject.getTypeReferences().stream()
+                .filter(
+                        (tRef) -> MappingContext.MAPPING.getMaps().stream()
+                        .noneMatch(
+                                (map) -> map.getOut().equals(tRef.getFullName()))
+                ).forEach((tRef) -> {
+                    infoChilds.add(
+                            new MappingInfoNode(this, "!NEED", tRef, NodeState.Error));
+                });
+
         this.infoChilds.forEach((inf) -> {
             if (inf.getState() != NodeState.Error) {
                 inf.setState(this.state);
@@ -245,5 +265,5 @@ public class MappingNode implements TreeNode, NodeStateContainer {
     public MappingMode getMode() {
         return mode;
     }
-        
+
 }
