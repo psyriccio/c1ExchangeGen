@@ -37,7 +37,8 @@ public class ExchangeModuleGenerator {
 
         CodeGenerator cgen = new CodeGenerator();
 
-        module = "\n" + "//Сгенерировано c1ExchangeGen" + "\n";
+        module = "\n" + "// Сгенерировано c1ExchangeGen" + "\n"
+                + "// -----------------------------\n\n";
 
         module += cgen.proc(
                 "СериализоватьСсылку",
@@ -45,7 +46,11 @@ public class ExchangeModuleGenerator {
                 true,
                 true,
                 new String[]{
-                    "Возврат \"~~~@REF:\" + Строка(СсылкаЗнч.Метаданные().ПолноеИмя()) + \"/\" + Строка(СсылкаЗнч.УникальныйИдентификатор());",
+                    "Если Найти(Строка(ТипЗнч(СсылкаЗнч)), \"Перечисление.\") <> 0 Тогда ",
+                    "   Возврат \"~~~@REF:\" + Строка(СсылкаЗнч.Метаданные().ПолноеИмя());",
+                    "Иначе",
+                    "   Возврат \"~~~@REF:\" + Строка(СсылкаЗнч.Метаданные().ПолноеИмя()) + \"/\" + Строка(СсылкаЗнч.УникальныйИдентификатор());",
+                    "КонецЕсли;",
                     ""
                 }
         ) + "\n";
@@ -94,6 +99,14 @@ public class ExchangeModuleGenerator {
                     "       КонецЕсли;",
                     "       Если Имена[0] = \"Документ\" Тогда",
                     "           Возврат Документы[Имена[1]].ПолучитьСсылку(Новый УникальныйИдентификатор(Пр[1]));",
+                    "       КонецЕсли;",
+                    "       Если Имена[0] = \"Перечисление\" Тогда",
+                    "           Для Каждого ПерЗн Из Перечисления[Имена[1]] Цикл",
+                    "               Если ПерЗн.Метаданные().Имя = Пр1 Тогда",
+                    "                   Возврат ПерЗн;",
+                    "               КонецЕсли",
+                    "           КонецЦикла;",
+                    "           Возврат Перечисления[Имена[1]].ПустаяСсылка();",
                     "       КонецЕсли;",
                     "   КонецЕсли;",
                     "КонецЕсли;",
@@ -181,10 +194,10 @@ public class ExchangeModuleGenerator {
                 }) + "\n";
 
         module += cgen.proc(
-                "СоздатьОбъектыИзМассиваСтруктур", 
-                new String[]{"Мас"}, 
-                true, 
-                true, 
+                "СоздатьОбъектыИзМассиваСтруктур",
+                new String[]{"Мас"},
+                true,
+                true,
                 new String[]{
                     "_Об = Новый Массив;",
                     "Для Каждого Струк Из Мас Цикл",
@@ -219,22 +232,22 @@ public class ExchangeModuleGenerator {
                     "       ТипЗн = Неопределено;",
                     "       Зн = Неопределено;",
                     "       Попытка \n"
-                            + "\t\t\tВыполнить(\"ТипЗн = ТипЗнч(Объект.\"+ СтрСтр.Ключ +\")\"); \n"
-                            + "\t\tИсключение \n"
-                            + "\t\t\t#Если Клиент Тогда\n"
-                            + "\t\t\t\tСообщить(ОписаниеОшибки());\n"
-                            + "\t\t\t#КонецЕсли\n"
-                            + "\t\tКонецПопытки;\n",
+                    + "\t\t\tВыполнить(\"ТипЗн = ТипЗнч(Объект.\"+ СтрСтр.Ключ +\")\"); \n"
+                    + "\t\tИсключение \n"
+                    + "\t\t\t#Если Клиент Тогда\n"
+                    + "\t\t\t\tСообщить(ОписаниеОшибки());\n"
+                    + "\t\t\t#КонецЕсли\n"
+                    + "\t\tКонецПопытки;\n",
                     "       Если ТипЗн <> Неопределено Тогда",
-                    "           Если Справочники.ТипВсеСсылки().СодержитТип(ТипЗн) \n" 
-                            + "\t\t\t\tИли Документы.ТипВсеСсылки().СодержитТип(ТипЗн) Тогда",
+                    "           Если Справочники.ТипВсеСсылки().СодержитТип(ТипЗн) \n"
+                    + "\t\t\t\tИли Документы.ТипВсеСсылки().СодержитТип(ТипЗн) Тогда",
                     "               Зн = ДесереализоватьСсылку(СтрСтр.Значение);",
                     "           КонецЕсли;",
                     "           Если ТипЗн = Тип(\"Строка\") Тогда",
                     "               Зн = Строка(СтрСтр.Значение);",
                     "           КонецЕсли;",
                     "           Если ТипЗн = Тип(\"Число\") Тогда",
-                    "               Зн = Число(СтрСтр.Значение);",
+                    "               Попытка Зн = Число(СтрСтр.Значение); Исключение Зн = 0 КонецПопытки;",
                     "           КонецЕсли;",
                     "           Если ТипЗн = Тип(\"Булево\") Тогда",
                     "               Зн = (Строка(СтрСтр.Значение) = \"Истина\");",
@@ -271,20 +284,30 @@ public class ExchangeModuleGenerator {
             if (child.getState() == NodeStateContainer.NodeState.Good
                     || child.getState() == NodeStateContainer.NodeState.Warning) {
                 HashMap<String, Object> struct = new HashMap<>();
+                HashMap<String, HashMap<String, Object>> tables = new HashMap<String, HashMap<String, Object>>();
                 struct.put("_ИД", null);
                 struct.put("_Тип", null);
                 struct.put("_Ссылка", null);
                 Collections.list(child.children()).stream().forEach((subch) -> {
                     if (subch instanceof MappingNode) {
                         MappingNode subchild = (MappingNode) subch;
-                        if(subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
-                            HashMap<String, Object> tabStruct = new HashMap<>();
-                            subchild.getInObject().asTabularSection().getProperties().forEach((tabPr) -> {
-                                tabStruct.put(tabPr.getName(), null);
-                            });
-                            struct.put(subchild.getInObject().asTabularSection().getName(), tabStruct);
-                        } else {
-                            if (subchild.getState() == NodeStateContainer.NodeState.Good) {
+                        if (subchild.getState() == NodeStateContainer.NodeState.Good
+                                || subchild.getState() == NodeStateContainer.NodeState.Warning) {
+                            if (subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
+                                HashMap<String, Object> tblStruct = new HashMap<>();
+                                tblStruct.put("_Владелец", null);
+                                tblStruct.put("_Н", null);
+                                Collections.list(subchild.children()).forEach((tblPropCh) -> {
+                                    if (tblPropCh instanceof MappingNode) {
+                                        MappingNode tblPropNode = (MappingNode) tblPropCh;
+                                        if (tblPropNode.getState() == NodeStateContainer.NodeState.Good
+                                                || tblPropNode.getState() == NodeStateContainer.NodeState.Warning) {
+                                            tblStruct.put(tblPropNode.getInObject().getName(), null);
+                                        }
+                                    }
+                                });
+                                tables.put(subchild.getInObject().getName(), tblStruct);
+                            } else {
                                 struct.put(subchild.getInObject().getName(), null);
                             }
                         }
@@ -315,6 +338,43 @@ public class ExchangeModuleGenerator {
                             });
                     module += "\n";
 
+                    List<String> modAddings = new ArrayList<>();
+                    tables.forEach((name, strct) -> {
+
+                        try {
+                            modAddings.add(cgen.proc(
+                                    "СоздатьСтруктуру_" + child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
+                                    new String[]{"Объект = Неопределено"},
+                                    true, true, new String[]{
+                                        "Если Объект <> Неопределено Тогда",
+                                        "   #Если Клиент Тогда",
+                                        "       Сообщить(\"struct \" + Строка(Объект) + \"" + name + "\");",
+                                        "   #КонецЕсли",
+                                        "   _Рез = Новый Массив;",
+                                        "   Для Каждого СтрТаб Из Объект." + name + " Цикл",
+                                        "\t" + cgen.structConstruct("Стркт", struct),
+                                        "      ЗаполнитьЗначенияСвойств(Стркт, СтрТаб);",
+                                        "      Стркт._Владелец = СериализоватьСсылку(Объект.Ссылка);",
+                                        "      Стркт._Н = _ПрЗнч(СтрТаб.НомерСтроки);",
+                                        "      Стркт._Имя = \"" + name + "\";",
+                                        "       _Рез.Добавить(Стркт);",
+                                        "   КонецЦикла;",
+                                        "КонецЕсли;",
+                                        "",
+                                        "Возврат _Рез;",
+                                        ""
+                                    }) + "\n"
+                            );
+                        } catch (TemplateException | IOException ex) {
+                            Logger.getLogger(ExchangeModuleGenerator.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
+                    });
+
+                    for(String mad : modAddings) {
+                        module += mad;
+                    }
+                    
                     module += cgen.proc(
                             "ВыгрузитьВСтруктуры_"
                             + child.getInObject().getFullName().replace(".", ""),
@@ -337,7 +397,15 @@ public class ExchangeModuleGenerator {
                                 + child.getInObject().getFullName().replace(".", "")
                                 + "(Выборка.Ссылка);",
                                 "   _Рез.Добавить(Стркт);",
-                                "КонецЦикла;",
+                                tables.keySet().stream()
+                                        .map(
+                                                (itm) -> "\t\tДля Каждого СтрСтр Из СоздатьСтруктуру_" 
+                                                        + child.getInObject().getFullName().replace(".", "") 
+                                                        + "_ТЧ_" + itm + "(Выборка.Ссылка)) Цикл\n"
+                                                        + "\t\t\t_Рез.Добавить(СтрСтр);\n"
+                                                        + "\t\tКонецЦикла;\n\n")
+                                    .reduce("\n", String::concat) +
+                                "\t\tКонецЦикла;",
                                 "",
                                 "Возврат _Рез;",
                                 ""
@@ -348,8 +416,7 @@ public class ExchangeModuleGenerator {
                     Logger.getLogger(ExchangeModuleGenerator.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        }
-        );
+        });
 
         module += cgen.proc(
                 "Выгрузить",
@@ -373,12 +440,12 @@ public class ExchangeModuleGenerator {
                 }) + "\n";
 
         module += cgen.proc(
-                "Загрузить", 
+                "Загрузить",
                 new String[]{
                     "Текст"
-                }, 
-                true, 
-                true, 
+                },
+                true,
+                true,
                 new String[]{
                     "Чт = Новый ЧтениеJSON;",
                     "Чт.УстановитьСтроку(Текст);",
@@ -389,7 +456,7 @@ public class ExchangeModuleGenerator {
                     "#КонецЕсли",
                     ""
                 }) + "\n";
-        
+
     }
 
     public String getModule() {
