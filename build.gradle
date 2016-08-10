@@ -52,6 +52,10 @@ shadowJar {
     }
 }
 
+build {
+  dependsOn += shadowJar
+}
+
 dependencies {
     // https://mvnrepository.com/artifact/commons-io/commons-io
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
@@ -63,12 +67,8 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
     // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.12'
-    // https://mvnrepository.com/artifact/org.freemarker/freemarker
-    compile group: 'org.freemarker', name: 'freemarker', version: '2.3.25-incubating'
     // https://mvnrepository.com/artifact/org.java.net.substance/substance
     compile group: 'org.java.net.substance', name: 'substance', version: '6.0'
-    // https://mvnrepository.com/artifact/org.aspectj/aspectjrt
-    compile group: 'org.aspectj', name: 'aspectjrt', version: '1.8.9'
     // https://mvnrepository.com/artifact/net.codesup.util/jaxb-plugin-lib
     compile group: 'net.codesup.util', name: 'jaxb-plugin-lib', version: '1.2.0'
     // https://mvnrepository.com/artifact/net.sf.itcb.extension.jaxb/itcb-jaxb-plugin

@@ -5,6 +5,7 @@
  */
 package c1exchangegen.codegen;
 
+import c1c.bsl.gen.CodeGenerator;
 import c1c.meta.generated.MetaObjectClass;
 import c1exchangegen.mapping.MappingNode;
 import c1exchangegen.mapping.MappingTreeModel;

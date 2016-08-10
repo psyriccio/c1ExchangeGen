@@ -5,11 +5,11 @@
  */
 package c1exchangegen;
 
+import c1c.bsl.gen.CodeGenerator;
 import c1c.meta.C1;
 import c1c.meta.generated.Conf;
 import java.io.File;
 import javax.xml.bind.JAXBException;
-import c1exchangegen.codegen.CodeGenerator;
 import c1exchangegen.gui.C1ConfigurationTreeModel;
 import c1exchangegen.gui.MainForm;
 import ch.qos.logback.classic.Logger;
