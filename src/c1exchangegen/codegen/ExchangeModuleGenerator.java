@@ -5,6 +5,7 @@
  */
 package c1exchangegen.codegen;
 
+import c1c.bsl.BSLFormatter;
 import c1c.bsl.gen.CodeGenerator;
 import c1c.meta.generated.MetaObjectClass;
 import c1exchangegen.mapping.MappingNode;
@@ -105,7 +106,7 @@ public class ExchangeModuleGenerator {
                     "           Для Каждого ПерЗн Из Перечисления[Имена[1]] Цикл",
                     "               Если ПерЗн.Метаданные().Имя = Пр1 Тогда",
                     "                   Возврат ПерЗн;",
-                    "               КонецЕсли",
+                    "               КонецЕсли;",
                     "           КонецЦикла;",
                     "           Возврат Перечисления[Имена[1]].ПустаяСсылка();",
                     "       КонецЕсли;",
@@ -461,7 +462,7 @@ public class ExchangeModuleGenerator {
     }
 
     public String getModule() {
-        return module;
+        return BSLFormatter.format(module);
     }
 
 }
