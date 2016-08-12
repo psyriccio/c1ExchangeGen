@@ -5,7 +5,6 @@
  */
 package c1exchangegen;
 
-import c1c.bsl.gen.CodeGenerator;
 import c1c.meta.C1;
 import c1c.meta.generated.Conf;
 import java.io.File;
@@ -20,7 +19,6 @@ import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
 import java.util.function.Consumer;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
@@ -163,47 +161,6 @@ public class C1ExchangeGen {
                     MAIN_FORM.setVisible(true);
                 }
             });
-        }
-
-        if (args[0].equals("test")) {
-            CodeGenerator codeGen = new CodeGenerator();
-            System.out.println(
-                    codeGen.proc(
-                            "Тест",
-                            new String[]{"Пар1", "Пар2", "Пар3"},
-                            true, true,
-                            new String[]{
-                                "//Тест тестовая функция, сгенерирована c1ExchangeGen",
-                                codeGen.forEach(
-                                        "СтрСтр",
-                                        "Список",
-                                        new String[]{
-                                            "СтрСтр.Поле = \"Олололо\";"
-                                        }),
-                                "Сообщить(\"Тест! c1ExchangeGen работает!\" + Пар1 + Пар2 + Пар3);",
-                                "Предупреждение(\"Олололо!\");",
-                                codeGen.structConstruct(
-                                        "Стрк",
-                                        CodeGenerator.buildHashMap()
-                                        .add("Тест1", "это просто строка")
-                                        .add("Тест2", 20.0)
-                                        .add("ЗначениеПараметра1", "~!Пар1")
-                                        .add(
-                                                "ВложСтрукт",
-                                                CodeGenerator.buildHashMap()
-                                                .add("Тест1", true)
-                                                .add("Тест2", new Date())
-                                                .add(
-                                                        "ЕщёВложение",
-                                                        CodeGenerator.buildHashMap()
-                                                        .add("Глубоко1", "так губоко еще никто не забирался")
-                                                        .add("ЗакончиласьФантазия", true)
-                                                        .done()
-                                                ).done()
-                                        ).done()
-                                )
-                            }
-                    ));
         }
 
         if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("match")) {

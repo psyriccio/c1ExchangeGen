@@ -6,7 +6,7 @@
 package c1exchangegen.codegen;
 
 import c1c.bsl.BSLFormatter;
-import c1c.bsl.gen.CodeGenerator;
+import c1c.bsl.gen.CodeTemplateProcessor;
 import c1c.meta.generated.MetaObjectClass;
 import c1exchangegen.mapping.MappingNode;
 import c1exchangegen.mapping.MappingTreeModel;
@@ -37,12 +37,12 @@ public class ExchangeModuleGenerator {
 
         objects = new ArrayList<>();
 
-        CodeGenerator cgen = new CodeGenerator();
+        CodeTemplateProcessor tpl = new CodeTemplateProcessor();
 
         module = "\n" + "// Сгенерировано c1ExchangeGen" + "\n"
                 + "// -----------------------------\n\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "СериализоватьСсылку",
                 new String[]{"СсылкаЗнч"},
                 true,
@@ -50,6 +50,10 @@ public class ExchangeModuleGenerator {
                 new String[]{
                     "Если Найти(Строка(ТипЗнч(СсылкаЗнч)), \"Перечисление.\") <> 0 Тогда ",
                     "   Возврат \"~~~@REF:\" + Строка(СсылкаЗнч.Метаданные().ПолноеИмя());",
+                    "ИначеЕсли Найти(Строка(ТипЗнч(СсылкаЗнч)), \"СправочникТабличнаяЧастьСтрока\") <> 0 Тогда",
+                    "   Возврат \"~~~@REF:\" + \"СтрокаТЧ\"  + \"/\" + Строка(СсылкаЗнч);",
+                    "ИначеЕсли Найти(Строка(ТипЗнч(СсылкаЗнч)) ,\"ДокументТабличнаяЧастьСтрока\") <> 0 Тогда",
+                    "   Возврат \"~~~@REF:\" + \"СтрокаТЧ\"  + \"/\" + Строка(СсылкаЗнч);",
                     "Иначе",
                     "   Возврат \"~~~@REF:\" + Строка(СсылкаЗнч.Метаданные().ПолноеИмя()) + \"/\" + Строка(СсылкаЗнч.УникальныйИдентификатор());",
                     "КонецЕсли;",
@@ -57,7 +61,7 @@ public class ExchangeModuleGenerator {
                 }
         ) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "СтрСплит",
                 new String[]{
                     "Стр", "Разд"
@@ -83,7 +87,7 @@ public class ExchangeModuleGenerator {
                 }
         ) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "ДесереализоватьСсылку",
                 new String[]{
                     "Стрк"
@@ -104,7 +108,7 @@ public class ExchangeModuleGenerator {
                     "       КонецЕсли;",
                     "       Если Имена[0] = \"Перечисление\" Тогда",
                     "           Для Каждого ПерЗн Из Перечисления[Имена[1]] Цикл",
-                    "               Если ПерЗн.Метаданные().Имя = Пр1 Тогда",
+                    "               Если ПерЗн.Метаданные().Имя = Пр[1] Тогда",
                     "                   Возврат ПерЗн;",
                     "               КонецЕсли;",
                     "           КонецЦикла;",
@@ -117,7 +121,7 @@ public class ExchangeModuleGenerator {
                     ""
                 }) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "_ПрЗнч",
                 new String[]{
                     "Значен"
@@ -134,7 +138,7 @@ public class ExchangeModuleGenerator {
                     ""
                 }) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "СериализоватьМассивСтруктур",
                 new String[]{
                     "ЗаписьJSON",
@@ -150,6 +154,9 @@ public class ExchangeModuleGenerator {
                     "       Сообщить(\"json_export \" + Строка(Эл._Ссылка));",
                     "   #КонецЕсли",
                     "   Для Каждого ЭлСтр Из Эл Цикл",
+                    "     #Если Клиент Тогда",
+                    "       Сообщить(\"json_export_field \" + Строка(ЭлСтр.Ключ) + \" = \" + Строка(ЭлСтр.Значение));",
+                    "     #КонецЕсли",
                     "       ЗаписьJSON.ЗаписатьИмяСвойства(ЭлСтр.Ключ);",
                     "       ЗаписьJSON.ЗаписатьЗначение(_ПрЗнч(ЭлСтр.Значение));",
                     "   КонецЦикла;",
@@ -159,7 +166,7 @@ public class ExchangeModuleGenerator {
                     ""
                 }) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "ДесереализоватьМассивСтруктур",
                 new String[]{
                     "ЧтениеJSON"
@@ -195,7 +202,7 @@ public class ExchangeModuleGenerator {
                     ""
                 }) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "СоздатьОбъектыИзМассиваСтруктур",
                 new String[]{"Мас"},
                 true,
@@ -297,6 +304,8 @@ public class ExchangeModuleGenerator {
                                 || subchild.getState() == NodeStateContainer.NodeState.Warning) {
                             if (subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
                                 HashMap<String, Object> tblStruct = new HashMap<>();
+                                tblStruct.put("_Ссылка", null);
+                                tblStruct.put("_Имя", null);
                                 tblStruct.put("_Владелец", null);
                                 tblStruct.put("_Н", null);
                                 Collections.list(subchild.children()).forEach((tblPropCh) -> {
@@ -319,12 +328,11 @@ public class ExchangeModuleGenerator {
 
                     objects.add(child.getInObject().getFullName().replace(".", ""));
 
-                    module += cgen.proc(
-                            "СоздатьСтруктуру_"
+                    module += tpl.proc("СоздатьСтруктуру_"
                             + child.getInObject().getFullName().replace(".", ""),
                             new String[]{"Объект = Неопределено"},
                             true, true, new String[]{
-                                cgen.structConstruct("Стркт", struct),
+                                tpl.structConstruct("Стркт", struct),
                                 "Если Объект <> Неопределено Тогда",
                                 "   #Если Клиент Тогда",
                                 "       Сообщить(\"struct \" + Строка(Объект));",
@@ -344,8 +352,7 @@ public class ExchangeModuleGenerator {
                     tables.forEach((name, strct) -> {
 
                         try {
-                            modAddings.add(cgen.proc(
-                                    "СоздатьСтруктуру_" + child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
+                            modAddings.add(tpl.proc("СоздатьСтруктуру_" + child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
                                     new String[]{"Объект = Неопределено"},
                                     true, true, new String[]{
                                         "Если Объект <> Неопределено Тогда",
@@ -354,7 +361,7 @@ public class ExchangeModuleGenerator {
                                         "   #КонецЕсли",
                                         "   _Рез = Новый Массив;",
                                         "   Для Каждого СтрТаб Из Объект." + name + " Цикл",
-                                        "\t" + cgen.structConstruct("Стркт", struct),
+                                        "\t" + tpl.structConstruct("Стркт", strct),
                                         "      ЗаполнитьЗначенияСвойств(Стркт, СтрТаб);",
                                         "      Стркт._Владелец = СериализоватьСсылку(Объект.Ссылка);",
                                         "      Стркт._Н = _ПрЗнч(СтрТаб.НомерСтроки);",
@@ -377,7 +384,7 @@ public class ExchangeModuleGenerator {
                         module += mad;
                     }
                     
-                    module += cgen.proc(
+                    module += tpl.proc(
                             "ВыгрузитьВСтруктуры_"
                             + child.getInObject().getFullName().replace(".", ""),
                             new String[]{
@@ -403,7 +410,7 @@ public class ExchangeModuleGenerator {
                                         .map(
                                                 (itm) -> "\t\tДля Каждого СтрСтр Из СоздатьСтруктуру_" 
                                                         + child.getInObject().getFullName().replace(".", "") 
-                                                        + "_ТЧ_" + itm + "(Выборка.Ссылка)) Цикл\n"
+                                                        + "_ТЧ_" + itm + "(Выборка.Ссылка) Цикл\n"
                                                         + "\t\t\t_Рез.Добавить(СтрСтр);\n"
                                                         + "\t\tКонецЦикла;\n\n")
                                     .reduce("\n", String::concat) +
@@ -420,7 +427,7 @@ public class ExchangeModuleGenerator {
             }
         });
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "Выгрузить",
                 new String[]{},
                 true,
@@ -441,7 +448,7 @@ public class ExchangeModuleGenerator {
                     ""
                 }) + "\n";
 
-        module += cgen.proc(
+        module += tpl.proc(
                 "Загрузить",
                 new String[]{
                     "Текст"
