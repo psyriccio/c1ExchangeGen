@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+  <?xml version="1.0" encoding="UTF-8"?>
 <c1ex:Mapping name="test-mapping" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:c1ex='c1ex' xsi:schemaLocation='c1ex ExchangeMapping.xsd'>
 
   <map in="Справочник.Организации" out="Справочник.Организации">
@@ -38,7 +38,7 @@
     <rule object="ЕдиницаХраненияОстатков" mode="SKIP" />
   </map>
 
-  <map in="Справочник.КлассификаторСтранМира" out="" mode="SKIP">
+  <map in="Справочник.КлассификаторСтранМира" out="Справочник.КлассификаторСтранМира" mode="SKIP">
     <rule object="*" mode="SKIP" />
   </map>
 
