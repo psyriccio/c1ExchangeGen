@@ -258,7 +258,7 @@ public class ExchangeModuleGenerator {
 
     }
 
-    private void defineStructureCreatationProc(Module.ModuleBuilder mod, String name, Map<String, Object> struct) {
+    private void defineStructureCreationProc(Module.ModuleBuilder mod, String name, Map<String, Object> struct) {
 
         mod.def(
                 proc("СоздатьСтруктуру_" + name, args("Объект = Неопределено"), true, true,
@@ -362,21 +362,28 @@ public class ExchangeModuleGenerator {
                 });
                 objects.add(child.getInObject().getFullName().replace(".", ""));
 
-                defineStructureCreatationProc(
-                        mod,
-                        child.getInObject().getFullName().replace(".", ""),
-                        struct
-                );
+                try {
+                    defineStructureCreationProc(
+                            mod,
+                            child.getInObject().getFullName().replace(".", ""),
+                            struct
+                    );
+                } catch (Exception ex) {
+                    //none
+                }
 
                 List<String> modAddings = new ArrayList<>();
                 tables.forEach((name, strct) -> {
 
-                    defineCreateTableSectionStructureCreationProc(
-                            mod,
-                            child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
-                            strct
-                    );
-
+                    try {
+                        defineCreateTableSectionStructureCreationProc(
+                                mod,
+                                child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
+                                strct
+                        );
+                    } catch (Exception ex) {
+                        //none
+                    }
                 });
 
                 mod.def(
