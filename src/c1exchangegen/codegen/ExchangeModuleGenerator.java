@@ -55,7 +55,8 @@ public class ExchangeModuleGenerator {
                                                 "Ост = Прав(Ост, СтрДлина(Ост) - (ПР + СтрДлина(Разд) - 1));"
                                         )
                                 )
-                        )
+                        ),
+                        _return("Рез")
                 )
         );
 
@@ -97,36 +98,37 @@ public class ExchangeModuleGenerator {
 
         mod.def(
                 proc("ДесереализоватьСсылку", args("Стрк"), true, true,
-                        block("Чст = СтрСплит(Стрк, \"@REF:\");"),
-                        ifThen(
-                                "Чст.Количество() = 2",
+                        trySuppress(
+                                block("Чст = СтрСплит(Стрк, \"@REF:\");"),
                                 ifThen(
-                                        "Чст[0] = \"~~~\"",
-                                        block(
-                                                "Пр = СтрСплит(Чст[1], \"/\");",
-                                                "Имена = СтрСплит(Пр[0], \".\");"
-                                        ),
+                                        "Чст.Количество() = 2",
                                         ifThen(
-                                                "Имена[0] = \"Справочник\"",
-                                                _return("Справочники[Имена[1]].ПолучитьСсылку(Новый УникальныйИдентификатор(Пр[1]))")
-                                        ),
-                                        ifThen(
-                                                "Имена[0] = \"Документ\"",
-                                                _return("Документы[Имена[1]].ПолучитьСсылку(Новый УникальныйИдентификатор(Пр[1]))")
-                                        ),
-                                        ifThen(
-                                                "Имена[0] = \"Перечисление\"",
-                                                forEach(
-                                                        "ПерЗн", "Перечисления[Имена[1]]",
-                                                        ifThen(
-                                                                "ПерЗн.Метаданные().Имя = Пр[1]",
-                                                                _return("ПерЗн")
-                                                        )
+                                                "Чст[0] = \"~~~\"",
+                                                block(
+                                                        "Пр = СтрСплит(Чст[1], \"/\");",
+                                                        "Имена = СтрСплит(Пр[0], \".\");"
                                                 ),
-                                                _return("Перечисления[Имена[1]].ПустаяСсылка()")
+                                                ifThen(
+                                                        "Имена[0] = \"Справочник\"",
+                                                        _return("Справочники[Имена[1]].ПолучитьСсылку(Новый УникальныйИдентификатор(Пр[1]))")
+                                                ),
+                                                ifThen(
+                                                        "Имена[0] = \"Документ\"",
+                                                        _return("Документы[Имена[1]].ПолучитьСсылку(Новый УникальныйИдентификатор(Пр[1]))")
+                                                ),
+                                                ifThen(
+                                                        "Имена[0] = \"Перечисление\"",
+                                                        forEach(
+                                                                "ПерЗн", "Перечисления[Имена[1]]",
+                                                                ifThen(
+                                                                        "ПерЗн.Метаданные().Имя = Пр[1]",
+                                                                        _return("ПерЗн")
+                                                                )
+                                                        ),
+                                                        _return("Перечисления[Имена[1]].ПустаяСсылка()")
+                                                )
                                         )
-                                )
-                        ),
+                                )),
                         _return("Неопределено")
                 )
         );
@@ -138,7 +140,7 @@ public class ExchangeModuleGenerator {
         mod.def(
                 proc("СериализоватьМассивСтруктур", args("ЗаписьJSON", "Мас"), true, false,
                         block("ЗаписьJSON.ЗаписатьНачалоМассива();"),
-                        forEach("Зп", "Мас",
+                        forEach("Эл", "Мас",
                                 block("ЗаписьJSON.ЗаписатьНачалоОбъекта();"),
                                 ppIfThen("Клиент", "Сообщить(\"json_export \" + Строка(Эл._Ссылка));"),
                                 forEach("ЭлСтр", "Эл",
@@ -190,12 +192,13 @@ public class ExchangeModuleGenerator {
     private void deficeCreateObjectsProc(Module.ModuleBuilder mod) {
 
         mod.def(
-                proc("СоздатьОбъектыИзМассиваСтруктур", args(), true, true,
+                proc("СоздатьОбъектыИзМассиваСтруктур", args("Мас"), true, true,
                         block("_Об = Новый Массив;"),
                         forEach("Струк", "Мас",
                                 ppIfThen("Клиент",
                                         "ОбработкаПрерыванияПользователя();",
-                                        "Сообщить(\"construct \" + Струк._Тип + \"/\" + Струк._ИД);"
+                                        "Сообщить(\"construct \" + Строка(Струк) + \":\" + Строка(ТипЗнч(Струк)) + \":\");",
+                                        "Сообщить(\"          \" + Струк._Тип + \"/\" + Струк._ИД);"
                                 ),
                                 block("Объект = Струк._Ссылка.ПолучитьОбъект();"),
                                 ifThen("Объект = Неопределено",
@@ -266,6 +269,7 @@ public class ExchangeModuleGenerator {
                         ifThen("Объект <> Неопределено",
                                 ppIfThen("Клиент", "Сообщить(\"struct \" + Строка(Объект));"),
                                 block(
+                                        "ЗаполнитьЗначенияСвойств(Стркт, Объект);",
                                         "Стркт._ИД = Строка(Объект.УникальныйИдентификатор());",
                                         "Стркт._Тип = Строка(Объект.Метаданные().ПолноеИмя());",
                                         "Стркт._Ссылка = СериализоватьСсылку(Объект);"
@@ -277,14 +281,14 @@ public class ExchangeModuleGenerator {
 
     }
 
-    private void defineCreateTableSectionStructureCreationProc(Module.ModuleBuilder mod, String name, Map<String, Object> strct) {
+    private void defineCreateTableSectionStructureCreationProc(Module.ModuleBuilder mod, String name, String qualName, Map<String, Object> strct) {
 
         mod.def(
                 proc("СоздатьСтруктуру_" + name, args("Объект = Неопределено"), true, true,
                         ifThen("Объект <> Неопределено",
                                 ppIfThen("Клиент", "Сообщить(\"struct \" + Строка(Объект) + \"" + name + "\");"),
                                 block("_Рез = Новый Массив;"),
-                                forEach("СтрТаб", "Объект." + name,
+                                forEach("СтрТаб", "Объект." + qualName,
                                         structConstruct("Стркт", strct),
                                         block(
                                                 "ЗаполнитьЗначенияСвойств(Стркт, СтрТаб);",
@@ -310,9 +314,17 @@ public class ExchangeModuleGenerator {
                                 ("Выборка = " + qualName)
                                 .replace("Справочник", "Справочники")
                                 .replace("Документ", "Документы")
-                                + ".Выбрать(,,);"),
+                                + ".Выбрать(,,);",
+                                "КД = 0;"),
                         whileLoop("Выборка.Следующий()",
                                 ppIfThen("Клиент", "Сообщить(\"struct_unload \" + Строка(Выборка.Ссылка));"),
+                                ifThen("Найти(Строка(ТипЗнч(Выборка.Ссылка)), \"Документ\") <> 0",
+                                        ifThenElse(
+                                                "КД > 30",
+                                                block("Прервать;"),
+                                                block("КД = КД + 1;")
+                                        )
+                                ),
                                 block("Стркт = СоздатьСтруктуру_"
                                         + name
                                         + "(Выборка.Ссылка);",
@@ -416,6 +428,7 @@ public class ExchangeModuleGenerator {
             defineCreateTableSectionStructureCreationProc(
                     mod,
                     child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
+                    name,
                     strct
             );
 
