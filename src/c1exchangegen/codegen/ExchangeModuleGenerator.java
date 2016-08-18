@@ -267,7 +267,7 @@ public class ExchangeModuleGenerator {
                                 ppIfThen("Клиент", "Сообщить(\"struct \" + Строка(Объект));"),
                                 block(
                                         "Стркт._ИД = Строка(Объект.УникальныйИдентификатор());",
-                                        "   Стркт._Тип = Строка(Объект.Метаданные().ПолноеИмя());",
+                                        "Стркт._Тип = Строка(Объект.Метаданные().ПолноеИмя());",
                                         "Стркт._Ссылка = СериализоватьСсылку(Объект);"
                                 )
                         ),
@@ -302,113 +302,39 @@ public class ExchangeModuleGenerator {
 
     }
 
-    public void generate(MappingTreeModel model) throws ParseException, IOException, TemplateException {
-
-        objects = new ArrayList<>();
-
-        CodeTemplateProcessor tpl = new CodeTemplateProcessor();
-
-        Module.ModuleBuilder mod = Module.__()
-                .variablesSection(
-                        comment(
-                                "",
-                                "Сгенерировано c1ExchangeGen",
-                                " -----------------------------",
-                                ""
-                        ));
-
-        defineUtilProcs(mod);
-        defineRefsSerializationProcs(mod);
-        defineArrayOfStructsSerializationProcs(mod);
-        deficeCreateObjectsProc(mod);
-
-        MappingNode root = (MappingNode) model.getRoot();
-
-        Collections.list(root.children()).stream().forEach((ch) -> {
-            MappingNode child = (MappingNode) ch;
-            if (child.getState() == NodeStateContainer.NodeState.Good
-                    || child.getState() == NodeStateContainer.NodeState.Warning) {
-                HashMap<String, Object> struct = new HashMap<>();
-                HashMap<String, HashMap<String, Object>> tables = new HashMap<String, HashMap<String, Object>>();
-                struct.put("_ИД", null);
-                struct.put("_Тип", null);
-                struct.put("_Ссылка", null);
-                Collections.list(child.children()).stream().forEach((subch) -> {
-                    if (subch instanceof MappingNode) {
-                        MappingNode subchild = (MappingNode) subch;
-                        if (subchild.getState() == NodeStateContainer.NodeState.Good
-                                || subchild.getState() == NodeStateContainer.NodeState.Warning) {
-                            if (subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
-                                HashMap<String, Object> tblStruct = new HashMap<>();
-                                tblStruct.put("_Ссылка", null);
-                                tblStruct.put("_Имя", null);
-                                tblStruct.put("_Владелец", null);
-                                tblStruct.put("_Н", null);
-                                Collections.list(subchild.children()).forEach((tblPropCh) -> {
-                                    if (tblPropCh instanceof MappingNode) {
-                                        MappingNode tblPropNode = (MappingNode) tblPropCh;
-                                        if (tblPropNode.getState() == NodeStateContainer.NodeState.Good
-                                                || tblPropNode.getState() == NodeStateContainer.NodeState.Warning) {
-                                            tblStruct.put(tblPropNode.getInObject().getName(), null);
-                                        }
-                                    }
-                                });
-                                tables.put(subchild.getInObject().getName(), tblStruct);
-                            } else {
-                                struct.put(subchild.getInObject().getName(), null);
-                            }
-                        }
-                    }
-                });
-                objects.add(child.getInObject().getFullName().replace(".", ""));
-
-                defineStructureCreatationProc(
-                        mod,
-                        child.getInObject().getFullName().replace(".", ""),
-                        struct
-                );
-
-                List<String> modAddings = new ArrayList<>();
-                tables.forEach((name, strct) -> {
-
-                    defineCreateTableSectionStructureCreationProc(
-                            mod,
-                            child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
-                            strct
-                    );
-
-                });
-
-                mod.def(
-                        proc("ВыгрузитьВСтруктуры_", args("Отбор = Неопределено"), true, true,
-                                block("_Рез = Новый Массив;",
-                                        "Выборка = " + child.getInObject().getFullName()
-                                        .replace("Справочник", "Справочники")
-                                        .replace("Документ", "Документы")
-                                        + ".Выбрать(,,);"),
-                                whileLoop("Выборка.Следующий()",
-                                        ppIfThen("Клиент", "Сообщить(\"struct_unload \" + Строка(Выборка.Ссылка));"),
-                                        block("Стркт = СоздатьСтруктуру_"
-                                                + child.getInObject().getFullName().replace(".", "")
-                                                + "(Выборка.Ссылка);",
-                                                "   _Рез.Добавить(Стркт);"),
-                                        block(
-                                                tables.keySet().stream()
-                                                .map(
-                                                        (itm) -> forEach("СтрСтр", "СоздатьСтруктуру_"
-                                                                + child.getInObject().getFullName().replace(".", "")
-                                                                + "_ТЧ_" + itm + "(Выборка.Ссылка)",
-                                                                block("_Рез.Добавить(СтрСтр);")
-                                                        ).produce()
-                                                ).reduce("", String::concat))
-                                ),
-                                _return("_Рез")
-                        )
-                );
-            }
-        }
+    private void defineExportToStructuresProc(Module.ModuleBuilder mod, String name, String qualName, HashMap<String, HashMap<String, Object>> tables) {
+        
+        mod.def(
+                proc("ВыгрузитьВСтруктуры_" + name, args("Отбор = Неопределено"), true, true,
+                        block("_Рез = Новый Массив;",
+                                ("Выборка = " + qualName)
+                                .replace("Справочник", "Справочники")
+                                .replace("Документ", "Документы")
+                                + ".Выбрать(,,);"),
+                        whileLoop("Выборка.Следующий()",
+                                ppIfThen("Клиент", "Сообщить(\"struct_unload \" + Строка(Выборка.Ссылка));"),
+                                block("Стркт = СоздатьСтруктуру_"
+                                        + name
+                                        + "(Выборка.Ссылка);",
+                                        "   _Рез.Добавить(Стркт);"),
+                                block(
+                                        tables.keySet().stream()
+                                        .map(
+                                                (itm) -> forEach("СтрСтр", "СоздатьСтруктуру_"
+                                                        + name
+                                                        + "_ТЧ_" + itm + "(Выборка.Ссылка)",
+                                                        block("_Рез.Добавить(СтрСтр);")
+                                                ).produce()
+                                        ).reduce("", String::concat))
+                        ),
+                        _return("_Рез")
+                )
         );
 
+    }
+
+    private void defineMainImportExportProcs(Module.ModuleBuilder mod) {
+        
         mod.def(
                 proc("Выгрузить", args(), true, true,
                         block(
@@ -437,6 +363,101 @@ public class ExchangeModuleGenerator {
                         ppIfThen("Клиент", "Сообщить(\"Загружено объектов: \" + Строка(_Об.Количество()));")
                 )
         );
+
+    }
+
+    private void processSubchildForDefines(Module.ModuleBuilder mod, Object subch, HashMap<String, HashMap<String, Object>> tables, HashMap<String,Object> struct) {
+        if (subch instanceof MappingNode) {
+            MappingNode subchild = (MappingNode) subch;
+            if (subchild.getState() == NodeStateContainer.NodeState.Good
+                    || subchild.getState() == NodeStateContainer.NodeState.Warning) {
+                if (subchild.getInObject().getObjClass() == MetaObjectClass.TabularSection) {
+                    HashMap<String, Object> tblStruct = new HashMap<>();
+                    tblStruct.put("_Ссылка", null);
+                    tblStruct.put("_Имя", null);
+                    tblStruct.put("_Владелец", null);
+                    tblStruct.put("_Н", null);
+                    Collections.list(subchild.children()).forEach((tblPropCh) -> {
+                        if (tblPropCh instanceof MappingNode) {
+                            MappingNode tblPropNode = (MappingNode) tblPropCh;
+                            if (tblPropNode.getState() == NodeStateContainer.NodeState.Good
+                                    || tblPropNode.getState() == NodeStateContainer.NodeState.Warning) {
+                                tblStruct.put(tblPropNode.getInObject().getName(), null);
+                            }
+                        }
+                    });
+                    tables.put(subchild.getInObject().getName(), tblStruct);
+                } else {
+                    struct.put(subchild.getInObject().getName(), null);
+                }
+            }
+        }
+
+    }
+
+    private void processChildForDefines(Module.ModuleBuilder mod, MappingNode child) {
+        HashMap<String, Object> struct = new HashMap<>();
+        HashMap<String, HashMap<String, Object>> tables = new HashMap<String, HashMap<String, Object>>();
+        struct.put("_ИД", null);
+        struct.put("_Тип", null);
+        struct.put("_Ссылка", null);
+        Collections.list(child.children()).stream().forEach((subch) -> {
+            processSubchildForDefines(mod, subch, tables, struct);
+        });
+        objects.add(child.getInObject().getFullName().replace(".", ""));
+
+        defineStructureCreatationProc(
+                mod,
+                child.getInObject().getFullName().replace(".", ""),
+                struct
+        );
+
+        List<String> modAddings = new ArrayList<>();
+        tables.forEach((name, strct) -> {
+
+            defineCreateTableSectionStructureCreationProc(
+                    mod,
+                    child.getInObject().getFullName().replace(".", "") + "_ТЧ_" + name,
+                    strct
+            );
+
+        });
+
+        defineExportToStructuresProc(mod, child.getInObject().getFullName().replace(".", ""), child.getInObject().getFullName(), tables);
+
+    }
+
+    public void generate(MappingTreeModel model) throws ParseException, IOException, TemplateException {
+
+        objects = new ArrayList<>();
+
+        CodeTemplateProcessor tpl = new CodeTemplateProcessor();
+
+        Module.ModuleBuilder mod = Module.__()
+                .variablesSection(
+                        comment(
+                                "",
+                                "Сгенерировано c1ExchangeGen",
+                                " -----------------------------",
+                                ""
+                        ));
+
+        defineUtilProcs(mod);
+        defineRefsSerializationProcs(mod);
+        defineArrayOfStructsSerializationProcs(mod);
+        deficeCreateObjectsProc(mod);
+
+        MappingNode root = (MappingNode) model.getRoot();
+
+        Collections.list(root.children()).stream().forEach((ch) -> {
+            MappingNode child = (MappingNode) ch;
+            if (child.getState() == NodeStateContainer.NodeState.Good
+                    || child.getState() == NodeStateContainer.NodeState.Warning) {
+                processChildForDefines(mod, child);
+            }
+        });
+
+        defineMainImportExportProcs(mod);
 
         module = mod.__().produce();
 
