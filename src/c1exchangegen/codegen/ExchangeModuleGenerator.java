@@ -258,7 +258,7 @@ public class ExchangeModuleGenerator {
 
     }
 
-    private void defineStructureCreatationProc(Module.ModuleBuilder mod, String name, Map<String, Object> struct) {
+    private void defineStructureCreationProc(Module.ModuleBuilder mod, String name, Map<String, Object> struct) {
 
         mod.def(
                 proc("СоздатьСтруктуру_" + name, args("Объект = Неопределено"), true, true,
@@ -303,7 +303,7 @@ public class ExchangeModuleGenerator {
     }
 
     private void defineExportToStructuresProc(Module.ModuleBuilder mod, String name, String qualName, HashMap<String, HashMap<String, Object>> tables) {
-        
+
         mod.def(
                 proc("ВыгрузитьВСтруктуры_" + name, args("Отбор = Неопределено"), true, true,
                         block("_Рез = Новый Массив;",
@@ -328,13 +328,11 @@ public class ExchangeModuleGenerator {
                                         ).reduce("", String::concat))
                         ),
                         _return("_Рез")
-                )
-        );
-
+                ));
     }
 
     private void defineMainImportExportProcs(Module.ModuleBuilder mod) {
-        
+
         mod.def(
                 proc("Выгрузить", args(), true, true,
                         block(
@@ -366,7 +364,7 @@ public class ExchangeModuleGenerator {
 
     }
 
-    private void processSubchildForDefines(Module.ModuleBuilder mod, Object subch, HashMap<String, HashMap<String, Object>> tables, HashMap<String,Object> struct) {
+    private void processSubchildForDefines(Module.ModuleBuilder mod, Object subch, HashMap<String, HashMap<String, Object>> tables, HashMap<String, Object> struct) {
         if (subch instanceof MappingNode) {
             MappingNode subchild = (MappingNode) subch;
             if (subchild.getState() == NodeStateContainer.NodeState.Good
@@ -406,7 +404,7 @@ public class ExchangeModuleGenerator {
         });
         objects.add(child.getInObject().getFullName().replace(".", ""));
 
-        defineStructureCreatationProc(
+        defineStructureCreationProc(
                 mod,
                 child.getInObject().getFullName().replace(".", ""),
                 struct
