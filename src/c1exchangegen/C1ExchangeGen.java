@@ -127,7 +127,10 @@ public class C1ExchangeGen {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws JAXBException, UnsupportedLookAndFeelException, TemplateException, IOException, InterruptedException, InvocationTargetException {
+    public static void main(String[] args)
+            throws JAXBException, UnsupportedLookAndFeelException,
+            TemplateException, IOException, InterruptedException,
+            InvocationTargetException {
 
         C1.setExceptionsConsumer(C1ExchangeGen::exceptionConsumed);
 
@@ -163,7 +166,8 @@ public class C1ExchangeGen {
             });
         }
 
-        if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("match")) {
+        if (args[0].equalsIgnoreCase("map") || args[0].equalsIgnoreCase("list")
+                || args[0].equalsIgnoreCase("match")) {
 
             log.info("Initialize JAXB contexts...");
 
@@ -175,7 +179,11 @@ public class C1ExchangeGen {
                                 return new RuntimeException("Cant load configuration (1)");
                             });
 
-            log.info("Loaded configuration (in): '" + inConf.getName() + ":" + "" + "', contains " + Integer.toString(inConf.getChildrens().size()) + " objects");
+            log.info(
+                    "Loaded configuration (in): '"
+                    + inConf.getName() + ":" + "" + "', contains "
+                    + Integer.toString(inConf.getChildrens().size())
+                    + " objects");
 
             Conf outConf = C1.loadConfiguration(
                     new File(args[2]))
@@ -184,7 +192,11 @@ public class C1ExchangeGen {
                                 return new RuntimeException("Cant load configuration (2)");
                             });
 
-            log.info("Loaded configuration (out): '" + outConf.getName() + ":" + "" + "', contains " + Integer.toString(outConf.getChildrens().size()) + " objects in root");
+            log.info(
+                    "Loaded configuration (out): '"
+                    + outConf.getName() + ":" + "" + "', contains "
+                    + Integer.toString(outConf.getChildrens().size())
+                    + " objects in root");
 
             IN_CONF = inConf;
             OUT_CONF = outConf;
@@ -192,13 +204,10 @@ public class C1ExchangeGen {
             log.info("Building index...");
             //ObjectIndex inIdx = new ObjectIndex(inConf);
             //ObjectIndex outIdx = new ObjectIndex(outConf);
-            log.info("Index builded. Total object count: {}", (C1.getALL(inConf).size() + C1.getALL(outConf).size()));
+            log.info(
+                    "Index builded. Total object count: {}",
+                    (C1.getALL(inConf).size() + C1.getALL(outConf).size()));
 
-//            if(args[0].equalsIgnoreCase("gui")) {
-//                java.awt.EventQueue.invokeLater(() -> {
-//                    MAIN_FORM.setModels(new C1ConfigurationTreeModel(IN_CONF), new C1ConfigurationTreeModel(OUT_CONF), null);
-//                });
-//            }
         }
     }
 
