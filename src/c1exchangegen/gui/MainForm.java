@@ -381,7 +381,7 @@ public class MainForm extends javax.swing.JFrame {
                 }
                 jProgressBarMain.setValue(0);
             });
-            c1exchangegen.C1ExchangeGen.startLoadWorker(new File("resurs.xml"), PlaceKind.PLACE_OUT, (prc) -> {
+            c1exchangegen.C1ExchangeGen.startLoadWorker(new File("buh.xml"), PlaceKind.PLACE_OUT, (prc) -> {
                 if (prc > 0) {
                     jProgressBarMain.setVisible(true);
                 }

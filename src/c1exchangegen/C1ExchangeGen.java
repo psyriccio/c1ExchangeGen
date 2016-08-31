@@ -140,7 +140,7 @@ public class C1ExchangeGen {
         StatusPrinter.print(lc);
 
         if (args.length == 0) {
-            args = "gui;./alucom.xml;./resurs.xml;./map.xml".split(";");
+            args = "gui;./alucom.xml;./buh.xml;./map.xml".split(";");
         }
 
         if (args.length != 4) {
